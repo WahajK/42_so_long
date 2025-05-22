@@ -1,2 +1,5 @@
 minilibx-linux/
 .vscode/
+*.a
+*.o
+so_long
