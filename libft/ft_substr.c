@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/21 19:08:31 by muhakhan          #+#    #+#             */
-/*   Updated: 2024/12/03 20:13:34 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/05/22 23:05:33 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,12 +82,7 @@ char	*ft_substr(char const *s, unsigned int start, size_t len)
 	if (!s)
 		return (NULL);
 	if (start > ft_strlen(s) || len == 0)
-	{
-		ptr = malloc(1);
-		if (!ptr)
-			return (NULL);
-		ptr[0] = 0;
-	}
+		return (NULL);
 	else
 	{
 		s += start;
