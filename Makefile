@@ -5,7 +5,7 @@ SRCS = \
 OBJS = $(SRCS:.c=.o)
 
 CC = cc
-# CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -g #-Wall -Wextra -Werror
 LIBFT = libft/libft.a
 LIBFT_DIR = libft
 MLX_DIR = mlx_linux
