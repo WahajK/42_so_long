@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/05/24 15:34:32 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/05/24 22:00:27 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ int	ft_check_rectangle(t_map *map)
 
 int	ft_is_legal_char(char ch)
 {
-	if (ch == '1' || ch == '0' || ch == 'P' || ch == 'E' || ch == 'C')
+	if (!(ch == '1' || ch == '0' || ch == 'P' || ch == 'E' || ch == 'C'))
 		return (0);
 	return (1);
 }
@@ -118,6 +118,25 @@ int	ft_check_illegal_char(t_map *map)
 
 int	ft_check_borders(t_map *map)
 {
+	int	i;
+
+	i = 0;
+	map->col_count = ft_strlen(map->map[0]);
+	//First row
+	while (map->map[0][i])
+		if (map->map[0][i++] != '1')
+			return (1);
+	//First col
+	while (map->map[i][0])
+		if (map->map[0][i++] != '1')
+			return (1);
+	
+	while (map->map[0][map->col_count])
+		if (map->map[0][i++] != '1')
+			return (1);
+	while (map->map[map->col_count][i])
+		if (map->map[0][i++] != '1')
+			return (1);
 	return (0);
 }
 
