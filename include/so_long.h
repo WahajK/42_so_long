@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:48:24 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/05/29 14:43:26 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/05/30 12:48:08 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,8 @@
 # define TILE_SIZE 64
 typedef struct s_map
 {
+	void	*mlx;
+	void	*mlx_window;
 	char	**map;
 	int		row_count;
 	int		col_count;

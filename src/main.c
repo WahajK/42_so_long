@@ -6,11 +6,13 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/05/29 20:55:02 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/05/30 12:29:09 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/so_long.h"
+
+void	destructor_map(char **map);
 
 int	check_extension(char *fname)
 {
@@ -39,7 +41,7 @@ char	*trim(char *arr)
 	return (arr);
 }
 
-int	illegal_char(char *str)
+int	illegal_char(int row, char *str, t_map *map)
 {
 	int	i;
 
@@ -48,9 +50,16 @@ int	illegal_char(char *str)
 	{
 		if (str[i] == '0' || str[i] == '1' || str[i] == 'P'
 			|| str[i] == 'E' || str[i] == 'C' || str[i] == 'X')
-			i++;
+		{
+			if (str[i] == 'P')
+			{
+				map->player_pos[0] = row;
+				map->player_pos[1] = i;
+			}
+		}
 		else
 			return (1);
+		i++;
 	}
 	return (0);
 }
@@ -58,19 +67,20 @@ int	illegal_char(char *str)
 int	set_counts(t_map *map, char *fname)
 {
 	int		fd;
-	int		i;
 	char	*str;
+	int		flag[2];
 
-	i = 0;
+	ft_bzero(flag, sizeof(int) * 2);
 	fd = open(fname, O_RDONLY);
 	if (fd < 0)
 		return (1);
 	str = trim(get_next_line(fd));
 	map->col_count = ft_strlen(str);
-	while (str && ++i)
+	while (str && ++flag[0])
 	{
-		if (ft_strlen(str) != map->col_count || illegal_char(str))
-			return (1);
+		if ((int) ft_strlen(str) != map->col_count
+			|| illegal_char(flag[0] - 1, str, map))
+			flag[1] = 1;
 		map->c_count += char_count(str, 'C');
 		map->p_count += char_count(str, 'P');
 		map->e_count += char_count(str, 'E');
@@ -78,9 +88,9 @@ int	set_counts(t_map *map, char *fname)
 		free(str);
 		str = trim(get_next_line(fd));
 	}
-	if (!map->c_count || map->p_count != 1 || map->e_count != 1)
+	if (!map->c_count || map->p_count != 1 || map->e_count != 1 || flag[1])
 		return (close (fd), 1);
-	return (map->row_count = i, close (fd), 0);
+	return (map->row_count = flag[0], close (fd), 0);
 }
 
 int	read_map(char *fname, t_map *map)
@@ -96,7 +106,7 @@ int	read_map(char *fname, t_map *map)
 		return (1);
 	map->map = malloc((map->row_count + 1) * sizeof(char *));
 	if (!map->map)
-		return (1);
+		return (close(fd), 1);
 	temp = get_next_line(fd);
 	i = 0;
 	while (temp)
@@ -136,12 +146,32 @@ char	**dup_map(int rc, char **map)
 	return (arr);
 }
 
+void	solve_maze(char **map, int *flags, int px, int py)
+{
+	if (map[px][py] == 'V' || map[px][py] == '1')
+		return ;
+	if (map[px][py] == 'E')
+		flags[0] = 1;
+	if (map[px][py] == 'C')
+		flags[1] = 1;
+	map[px][py] = 'V';
+	solve_maze(map, flags, px + 1, py);
+	solve_maze(map, flags, px - 1, py);
+	solve_maze(map, flags, px, py + 1);
+	solve_maze(map, flags, px, py - 1);
+}
+
 int	check_escape(t_map *map)
 {
-	// char	**map_copy;
+	char	**map_copy;
+	int		flags[2];
 
-	// map_copy = dup_map(map->row_count, map->map);
-	return (0);
+	ft_bzero(flags, sizeof(int) * 2);
+	map_copy = dup_map(map->row_count, map->map);
+	solve_maze(map_copy, flags, map->player_pos[0], map->player_pos[1]);
+	if (!flags[0] || !flags[1])
+		return (destructor_map(map_copy), 1);
+	return (destructor_map(map_copy), 0);
 }
 
 int	check_borders(t_map *map)
@@ -169,14 +199,12 @@ int	check_borders(t_map *map)
 
 int	validate_map(t_map *map)
 {
-	int	flag;
-
 	if (check_borders(map) || check_escape(map))
 		return (1);
 	return (0);
 }
 
-int	destructor(char **map)
+void	destructor_map(char **map)
 {
 	int	i;
 
@@ -184,6 +212,11 @@ int	destructor(char **map)
 	while (map[i])
 		free(map[i++]);
 	free(map);
+}
+
+void	destructor(t_map *map)
+{
+	destructor_map(map->map);
 }
 
 int	main(int argc, char *argv[])
@@ -194,7 +227,7 @@ int	main(int argc, char *argv[])
 	if (argc != 2)
 		return (ft_printf("Invalid number of arguments\n"), 1);
 	if (check_extension(argv[1]) || read_map(argv[1], &map))
-		return (ft_printf("Invalid map or file\n", 1));
+		return (ft_printf("Invalid map or file\n"), 1);
 	if (validate_map(&map))
 		return (destructor(&map), ft_printf("Invalid map\n"), 1);
 	print_map(&map);
