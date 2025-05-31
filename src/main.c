@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/05/30 12:29:09 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/05/31 23:11:45 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,6 +217,53 @@ void	destructor_map(char **map)
 void	destructor(t_map *map)
 {
 	destructor_map(map->map);
+	exit(1);
+}
+
+void	start_game_window(t_map *map)
+{
+	int	size_x;
+	int	size_y;
+	map->mlx = mlx_init();
+	if (!map->mlx)
+		destructor(map);
+	mlx_get_screen_size(map->mlx, &size_x, &size_y);
+	// if (size_x * TILE_SIZE > size_x || size_y * TILE_SIZE > size_y)
+	// 	return (ft_printf("Screen too big\n"), destructor(map));
+	map->window = mlx_new_window(map->mlx, 1280 \
+		, 720, "Meow");
+	if (!map->window)
+		destructor(map);
+}
+
+void	set_tiles(t_map *map)
+{
+	int	tile_size;
+
+	tile_size = TILE_SIZE;
+	map->player = mlx_xpm_file_to_image(map->mlx, "textures/Lick_1.xpm",
+				&tile_size, &tile_size);
+}
+
+void	draw_image(t_map *map, void *img, int x, int y)
+{
+	mlx_put_image_to_window(map->mlx, map->window, img, TILE_SIZE * x, TILE_SIZE * y);
+}
+
+void	render_map(t_map *map)
+{
+	int	i;
+	int	j;
+
+	set_tiles(map);
+	i = 0;
+	while (map->map[i])
+	{
+		j = 0;
+		while (map->map[i][j])
+			draw_image(map, map->player, j++, i);
+		i++;
+	}
 }
 
 int	main(int argc, char *argv[])
@@ -230,7 +277,8 @@ int	main(int argc, char *argv[])
 		return (ft_printf("Invalid map or file\n"), 1);
 	if (validate_map(&map))
 		return (destructor(&map), ft_printf("Invalid map\n"), 1);
-	print_map(&map);
-	destructor(&map);
-	return (0);
+	start_game_window(&map);
+	render_map(&map);
+	mlx_loop(map.mlx);
+	return (destructor(&map), 0);
 }
