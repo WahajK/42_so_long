@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:48:24 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/05/30 12:48:08 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/05/31 21:49:09 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,11 +19,12 @@
 # include "../libft/libft.h"
 # include "../minilibx-linux/mlx.h"
 
-# define TILE_SIZE 64
+# define TILE_SIZE 32
 typedef struct s_map
 {
 	void	*mlx;
-	void	*mlx_window;
+	void	*window;
+	void	*player;
 	char	**map;
 	int		row_count;
 	int		col_count;
