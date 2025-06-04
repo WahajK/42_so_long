@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/05/31 23:11:45 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/02 00:17:14 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,10 +75,10 @@ int	set_counts(t_map *map, char *fname)
 	if (fd < 0)
 		return (1);
 	str = trim(get_next_line(fd));
-	map->col_count = ft_strlen(str);
+	map->x_count = ft_strlen(str);
 	while (str && ++flag[0])
 	{
-		if ((int) ft_strlen(str) != map->col_count
+		if ((int) ft_strlen(str) != map->x_count
 			|| illegal_char(flag[0] - 1, str, map))
 			flag[1] = 1;
 		map->c_count += char_count(str, 'C');
@@ -90,7 +90,7 @@ int	set_counts(t_map *map, char *fname)
 	}
 	if (!map->c_count || map->p_count != 1 || map->e_count != 1 || flag[1])
 		return (close (fd), 1);
-	return (map->row_count = flag[0], close (fd), 0);
+	return (map->y_count = flag[0], close (fd), 0);
 }
 
 int	read_map(char *fname, t_map *map)
@@ -104,7 +104,7 @@ int	read_map(char *fname, t_map *map)
 	fd = open(fname, O_RDONLY);
 	if (fd < 0)
 		return (1);
-	map->map = malloc((map->row_count + 1) * sizeof(char *));
+	map->map = malloc((map->y_count + 1) * sizeof(char *));
 	if (!map->map)
 		return (close(fd), 1);
 	temp = get_next_line(fd);
@@ -167,7 +167,7 @@ int	check_escape(t_map *map)
 	int		flags[2];
 
 	ft_bzero(flags, sizeof(int) * 2);
-	map_copy = dup_map(map->row_count, map->map);
+	map_copy = dup_map(map->y_count, map->map);
 	solve_maze(map_copy, flags, map->player_pos[0], map->player_pos[1]);
 	if (!flags[0] || !flags[1])
 		return (destructor_map(map_copy), 1);
@@ -179,20 +179,20 @@ int	check_borders(t_map *map)
 	int	i;
 
 	i = 0;
-	while (i < map->col_count)
+	while (i < map->x_count)
 		if (map->map[0][i++] != '1')
 			return (1);
 	i = 0;
-	while (i < map->row_count)
+	while (i < map->y_count)
 		if (map->map[i++][0] != '1')
 			return (1);
 	i = 0;
-	while (i < map->row_count)
-		if (map->map[i++][map->col_count - 1] != '1')
+	while (i < map->y_count)
+		if (map->map[i++][map->x_count - 1] != '1')
 			return (1);
 	i = 0;
-	while (i < map->col_count)
-		if (map->map[map->row_count - 1][i++] != '1')
+	while (i < map->x_count)
+		if (map->map[map->y_count - 1][i++] != '1')
 			return (1);
 	return (0);
 }
@@ -228,10 +228,10 @@ void	start_game_window(t_map *map)
 	if (!map->mlx)
 		destructor(map);
 	mlx_get_screen_size(map->mlx, &size_x, &size_y);
-	// if (size_x * TILE_SIZE > size_x || size_y * TILE_SIZE > size_y)
-	// 	return (ft_printf("Screen too big\n"), destructor(map));
-	map->window = mlx_new_window(map->mlx, 1280 \
-		, 720, "Meow");
+	if (map->x_count * TILE_SIZE > size_x || map->y_count * TILE_SIZE > size_y)
+		return (ft_printf("Screen too big\n"), destructor(map));
+	map->window = mlx_new_window(map->mlx, map->x_count * TILE_SIZE \
+		, map->y_count * TILE_SIZE, "Meow");
 	if (!map->window)
 		destructor(map);
 }
@@ -241,7 +241,9 @@ void	set_tiles(t_map *map)
 	int	tile_size;
 
 	tile_size = TILE_SIZE;
-	map->player = mlx_xpm_file_to_image(map->mlx, "textures/Lick_1.xpm",
+	map->player = mlx_xpm_file_to_image(map->mlx, "character_.xpm",
+				&tile_size, &tile_size);
+	map->temp = mlx_xpm_file_to_image(map->mlx, "character_.xpm",
 				&tile_size, &tile_size);
 }
 
