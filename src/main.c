@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/02 00:17:14 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/05 18:26:48 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,7 +241,7 @@ void	set_tiles(t_map *map)
 	int	tile_size;
 
 	tile_size = TILE_SIZE;
-	map->player = mlx_xpm_file_to_image(map->mlx, "character_.xpm",
+	map->player = mlx_xpm_file_to_image(map->mlx, "merged.xpm",
 				&tile_size, &tile_size);
 	map->temp = mlx_xpm_file_to_image(map->mlx, "character_.xpm",
 				&tile_size, &tile_size);
