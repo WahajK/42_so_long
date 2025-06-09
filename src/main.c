@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/05 18:26:48 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/06 20:59:22 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,23 +228,26 @@ void	start_game_window(t_map *map)
 	if (!map->mlx)
 		destructor(map);
 	mlx_get_screen_size(map->mlx, &size_x, &size_y);
-	if (map->x_count * TILE_SIZE > size_x || map->y_count * TILE_SIZE > size_y)
+	if ((map->x_count + 2) * TILE_SIZE > size_x
+		|| (map->y_count + 2) * TILE_SIZE > size_y)
 		return (ft_printf("Screen too big\n"), destructor(map));
-	map->window = mlx_new_window(map->mlx, map->x_count * TILE_SIZE \
-		, map->y_count * TILE_SIZE, "Meow");
+	map->window = mlx_new_window(map->mlx, (map->x_count + 2) * TILE_SIZE \
+		, (map->y_count + 2) * TILE_SIZE, "Meow");
 	if (!map->window)
 		destructor(map);
 }
 
 void	set_tiles(t_map *map)
 {
-	int	tile_size;
+	int		tile_size;
+	void*	(*f)(void *, char *, int *, int *);
 
 	tile_size = TILE_SIZE;
-	map->player = mlx_xpm_file_to_image(map->mlx, "merged.xpm",
-				&tile_size, &tile_size);
-	map->temp = mlx_xpm_file_to_image(map->mlx, "character_.xpm",
-				&tile_size, &tile_size);
+	f = mlx_xpm_file_to_image;
+	map->obstacle = f(map->mlx, OBSTACLE, &tile_size, &tile_size);
+	map->background = f(map->mlx, BACKGROUND, &tile_size, &tile_size);
+	map->player_down = f(map->mlx, PLAYER, &tile_size, &tile_size);
+	map->water = f(map->mlx, WATER, &tile_size, &tile_size);
 }
 
 void	draw_image(t_map *map, void *img, int x, int y)
@@ -252,18 +255,58 @@ void	draw_image(t_map *map, void *img, int x, int y)
 	mlx_put_image_to_window(map->mlx, map->window, img, TILE_SIZE * x, TILE_SIZE * y);
 }
 
+// Generic boundary drawer: draws a line of water horizontally or vertically
+void draw_boundary(t_map *map, int start_x, int start_y, int dx, int dy, int count)
+{
+	int i = 0;
+	while (i < count)
+	{
+		draw_image(map, map->water, start_x + dx * i, start_y + dy * i);
+		i++;
+	}
+}
+
+// Draws water around the map as a boundary
+void draw_water(t_map *map)
+{
+	int width = map->x_count;
+	int height = map->y_count;
+
+	// Top edge
+	draw_boundary(map, 0, 0, 1, 0, width + 2);
+
+	// Left edge
+	draw_boundary(map, 0, 0, 0, 1, height + 2);
+
+	// Bottom edge
+	draw_boundary(map, 0, height + 1, 1, 0, width + 2);
+
+	// Right edge
+	draw_boundary(map, width + 1, 0, 0, 1, height + 2);
+}
+
+
 void	render_map(t_map *map)
 {
 	int	i;
 	int	j;
 
 	set_tiles(map);
+	draw_water(map);
 	i = 0;
 	while (map->map[i])
 	{
 		j = 0;
 		while (map->map[i][j])
-			draw_image(map, map->player, j++, i);
+		{
+			if (map->map[i][j] == '1')
+				draw_image(map, map->obstacle, j + 1, i + 1);
+			else if (map->map[i][j] == 'P')
+				draw_image(map, map->player_down, j + 1, i + 1);
+			else
+				draw_image(map, map->background, j + 1, i + 1);
+			j++;
+		}
 		i++;
 	}
 }
