@@ -7,7 +7,7 @@ static const char *bot_tile[] = {
 "X c #79A863",
 "o c #9BB94E",
 "O c #BFBA5B",
-"+ c None",
+"+ c #47ABA9",
 /* pixels */
 "oooooOOOOOOOOOOXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 "ooooooOOOOOOoXXXoooXXXXXXXXXXXXXXXXXXXXX....XXXXXXXXXXXXXXXXXooo",

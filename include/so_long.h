@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:48:24 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/07 00:49:05 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/11 23:36:33 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,22 @@
 # include "../minilibx-linux/mlx.h"
 
 # define TILE_SIZE 64
-# define OBSTACLE "textures/back_obs.xpm"
+# define OBSTACLE "textures/obs.xpm"
 # define BACKGROUND "textures/mid_tile.xpm"
-# define PLAYER "textures/player_right_tile.xpm"
+# define PLAYER "textures/test.xpm"
 # define WATER "textures/water.xpm"
+# define EXIT_INACTIVE "textures/gold.xpm"
+# define EXIT_ACTIVE "textures/exit_active.xpm"
+# define TOP_LEFT_TILE "textures/top_left_t.xpm"
+# define TOP_RIGHT_TILE "textures/top_right_t.xpm"
+# define TOP_TILE "textures/top_t.xpm"
+# define BOT_LEFT_TILE "textures/bot_left_t.xpm"
+# define BOT_RIGHT_TILE "textures/bot_right_t.xpm"
+# define BOT_TILE "textures/bot_t.xpm"
+# define LEFT_TILE "textures/left_t.xpm"
+# define RIGHT_TILE "textures/right_t.xpm"
+# define COLLECTIBLE "textures/collectible.xpm"
+
 typedef struct s_map
 {
 	void	*mlx;
@@ -34,6 +46,17 @@ typedef struct s_map
 	void	*player_left;
 	void	*water;
 	void	*obstacle;
+	void	*collectible;
+	void	*top_left_tile;
+	void	*top_right_tile;
+	void	*top_tile;
+	void	*bot_left_tile;
+	void	*bot_right_tile;
+	void	*bot_tile;
+	void	*left_tile;
+	void	*right_tile;
+	void	*exit_inactive;
+	void	*exit_active;
 	void	*background;
 	char	**map;
 	int		x_count;

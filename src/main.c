@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/06 20:59:22 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/11 02:15:40 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,6 +224,7 @@ void	start_game_window(t_map *map)
 {
 	int	size_x;
 	int	size_y;
+
 	map->mlx = mlx_init();
 	if (!map->mlx)
 		destructor(map);
@@ -240,7 +241,7 @@ void	start_game_window(t_map *map)
 void	set_tiles(t_map *map)
 {
 	int		tile_size;
-	void*	(*f)(void *, char *, int *, int *);
+	void	*(*f)(void *, char *, int *, int *);
 
 	tile_size = TILE_SIZE;
 	f = mlx_xpm_file_to_image;
@@ -248,43 +249,76 @@ void	set_tiles(t_map *map)
 	map->background = f(map->mlx, BACKGROUND, &tile_size, &tile_size);
 	map->player_down = f(map->mlx, PLAYER, &tile_size, &tile_size);
 	map->water = f(map->mlx, WATER, &tile_size, &tile_size);
+	map->exit_active = f(map->mlx, EXIT_ACTIVE, &tile_size, &tile_size);
+	map->exit_inactive = f(map->mlx, EXIT_INACTIVE, &tile_size, &tile_size);
+	map->bot_left_tile = f(map->mlx, BOT_LEFT_TILE, &tile_size, &tile_size);
+	map->bot_right_tile = f(map->mlx, BOT_RIGHT_TILE, &tile_size, &tile_size);
+	map->bot_tile = f(map->mlx, BOT_TILE, &tile_size, &tile_size);
+	map->top_left_tile = f(map->mlx, TOP_LEFT_TILE, &tile_size, &tile_size);
+	map->top_right_tile = f(map->mlx, TOP_RIGHT_TILE, &tile_size, &tile_size);
+	map->top_tile = f(map->mlx, TOP_TILE, &tile_size, &tile_size);
+	map->left_tile = f(map->mlx, LEFT_TILE, &tile_size, &tile_size);
+	map->right_tile = f(map->mlx, RIGHT_TILE, &tile_size, &tile_size);
+	map->collectible = f(map->mlx, COLLECTIBLE, &tile_size, &tile_size);
 }
 
 void	draw_image(t_map *map, void *img, int x, int y)
 {
-	mlx_put_image_to_window(map->mlx, map->window, img, TILE_SIZE * x, TILE_SIZE * y);
+	mlx_put_image_to_window(map->mlx, map->window, \
+		img, TILE_SIZE * x, TILE_SIZE * y);
 }
 
-// Generic boundary drawer: draws a line of water horizontally or vertically
-void draw_boundary(t_map *map, int start_x, int start_y, int dx, int dy, int count)
+void	draw_water(t_map *map)
 {
-	int i = 0;
-	while (i < count)
+	int	i;
+
+	i = 0;
+	while (i < map->x_count + 2)
+		draw_image(map, map->water, i++, 0);
+	i = 0;
+	while (i < map->y_count + 2)
+		draw_image(map, map->water, 0, i++);
+	i = 0;
+	while (i < map->x_count + 2)
+		draw_image(map, map->water, i++, map->y_count + 1);
+	i = 0;
+	while (i < map->x_count + 2)
+		draw_image(map, map->water, map->x_count + 1, i++);
+}
+
+void	draw_border(t_map *map)
+{
+	int	i;
+
+	i = 1;
+	while (i < map->x_count + 1)
 	{
-		draw_image(map, map->water, start_x + dx * i, start_y + dy * i);
-		i++;
+		if (i == 1)
+			draw_image(map, map->top_left_tile, i++, 1);
+		else if (i == map->x_count)
+			draw_image(map, map->top_right_tile, i++, 1);
+		else
+			draw_image(map, map->top_tile, i++, 1);
 	}
+	i = 1;
+	while (i < map->x_count + 1)
+	{
+		if (i == 1)
+			draw_image(map, map->bot_left_tile, i++, map->y_count);
+		else if (i == map->x_count)
+			draw_image(map, map->bot_right_tile, i++, map->y_count);
+		else
+			draw_image(map, map->bot_tile, i++, map->y_count);
+	}
+	i = 2;
+	while (i < map->y_count)
+	{
+		draw_image(map, map->left_tile, 1, i++);
+	}
+	i = 2;
+	while (i < map->y_count)
+		draw_image(map, map->right_tile, map->x_count, i++);
 }
-
-// Draws water around the map as a boundary
-void draw_water(t_map *map)
-{
-	int width = map->x_count;
-	int height = map->y_count;
-
-	// Top edge
-	draw_boundary(map, 0, 0, 1, 0, width + 2);
-
-	// Left edge
-	draw_boundary(map, 0, 0, 0, 1, height + 2);
-
-	// Bottom edge
-	draw_boundary(map, 0, height + 1, 1, 0, width + 2);
-
-	// Right edge
-	draw_boundary(map, width + 1, 0, 0, 1, height + 2);
-}
-
 
 void	render_map(t_map *map)
 {
@@ -293,16 +327,21 @@ void	render_map(t_map *map)
 
 	set_tiles(map);
 	draw_water(map);
-	i = 0;
-	while (map->map[i])
+	draw_border(map);
+	i = 1;
+	while (map->map[i + 1])
 	{
-		j = 0;
-		while (map->map[i][j])
+		j = 1;
+		while (map->map[i][j + 1])
 		{
 			if (map->map[i][j] == '1')
 				draw_image(map, map->obstacle, j + 1, i + 1);
 			else if (map->map[i][j] == 'P')
 				draw_image(map, map->player_down, j + 1, i + 1);
+			else if (map->map[i][j] == 'E')
+				draw_image(map, map->exit_inactive, j + 1, i + 1);
+			else if (map->map[i][j] == 'C')
+				draw_image(map, map->collectible, j + 1, i + 1);
 			else
 				draw_image(map, map->background, j + 1, i + 1);
 			j++;
