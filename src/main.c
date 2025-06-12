@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/11 02:15:40 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/12 15:40:57 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,7 +247,10 @@ void	set_tiles(t_map *map)
 	f = mlx_xpm_file_to_image;
 	map->obstacle = f(map->mlx, OBSTACLE, &tile_size, &tile_size);
 	map->background = f(map->mlx, BACKGROUND, &tile_size, &tile_size);
-	map->player_down = f(map->mlx, PLAYER, &tile_size, &tile_size);
+	map->player_down = f(map->mlx, PLAYER_DOWN, &tile_size, &tile_size);
+	map->player_up = f(map->mlx, PLAYER_UP, &tile_size, &tile_size);
+	map->player_left = f(map->mlx, PLAYER_LEFT, &tile_size, &tile_size);
+	map->player_right = f(map->mlx, PLAYER_RIGHT, &tile_size, &tile_size);
 	map->water = f(map->mlx, WATER, &tile_size, &tile_size);
 	map->exit_active = f(map->mlx, EXIT_ACTIVE, &tile_size, &tile_size);
 	map->exit_inactive = f(map->mlx, EXIT_INACTIVE, &tile_size, &tile_size);
@@ -310,11 +313,16 @@ void	draw_border(t_map *map)
 		else
 			draw_image(map, map->bot_tile, i++, map->y_count);
 	}
+	continue_border(map);
+}
+
+void	continue_border(t_map *map)
+{
+	int	i;
+
 	i = 2;
 	while (i < map->y_count)
-	{
 		draw_image(map, map->left_tile, 1, i++);
-	}
 	i = 2;
 	while (i < map->y_count)
 		draw_image(map, map->right_tile, map->x_count, i++);
@@ -337,7 +345,7 @@ void	render_map(t_map *map)
 			if (map->map[i][j] == '1')
 				draw_image(map, map->obstacle, j + 1, i + 1);
 			else if (map->map[i][j] == 'P')
-				draw_image(map, map->player_down, j + 1, i + 1);
+				draw_image(map, map->player_right, j + 1, i + 1);
 			else if (map->map[i][j] == 'E')
 				draw_image(map, map->exit_inactive, j + 1, i + 1);
 			else if (map->map[i][j] == 'C')
