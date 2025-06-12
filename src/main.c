@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/12 15:40:57 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/12 18:53:24 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,15 +209,65 @@ void	destructor_map(char **map)
 	int	i;
 
 	i = 0;
+	if (!map)
+		return ;
 	while (map[i])
 		free(map[i++]);
 	free(map);
 }
 
+void	destroy_images(t_map *map)
+{
+	if (map->obstacle)
+		mlx_destroy_image(map->mlx, map->obstacle);
+	if (map->background)
+		mlx_destroy_image(map->mlx, map->background);
+	if (map->player_down)
+		mlx_destroy_image(map->mlx, map->player_down);
+	if (map->player_up)
+		mlx_destroy_image(map->mlx, map->player_up);
+	if (map->player_left)
+		mlx_destroy_image(map->mlx, map->player_left);
+	if (map->player_right)
+		mlx_destroy_image(map->mlx, map->player_right);
+	if (map->water)
+		mlx_destroy_image(map->mlx, map->water);
+	if (map->exit_active)
+		mlx_destroy_image(map->mlx, map->exit_active);
+	if (map->exit_inactive)
+		mlx_destroy_image(map->mlx, map->exit_inactive);
+	if (map->bot_left_tile)
+		mlx_destroy_image(map->mlx, map->bot_left_tile);
+	if (map->bot_right_tile)
+		mlx_destroy_image(map->mlx, map->bot_right_tile);
+	if (map->bot_tile)
+		mlx_destroy_image(map->mlx, map->bot_tile);
+	if (map->top_left_tile)
+		mlx_destroy_image(map->mlx, map->top_left_tile);
+	if (map->top_right_tile)
+		mlx_destroy_image(map->mlx, map->top_right_tile);
+	if (map->top_tile)
+		mlx_destroy_image(map->mlx, map->top_tile);
+	if (map->left_tile)
+		mlx_destroy_image(map->mlx, map->left_tile);
+	if (map->right_tile)
+		mlx_destroy_image(map->mlx, map->right_tile);
+	if (map->collectible)
+		mlx_destroy_image(map->mlx, map->collectible);
+}
+
 void	destructor(t_map *map)
 {
 	destructor_map(map->map);
-	exit(1);
+	destroy_images(map);
+	if (map->window)
+		mlx_destroy_window(map->mlx, map->window);
+	if (map->mlx)
+	{
+		mlx_destroy_display(map->mlx);
+		free(map->mlx);
+	}
+	exit(0);
 }
 
 void	start_game_window(t_map *map)
@@ -328,12 +378,34 @@ void	continue_border(t_map *map)
 		draw_image(map, map->right_tile, map->x_count, i++);
 }
 
-void	render_map(t_map *map)
+void	check_and_draw(t_map *map, int i, int j, int keysm)
+{
+	if (map->map[i][j] == '1')
+		draw_image(map, map->obstacle, j + 1, i + 1);
+	else if (map->map[i][j] == 'P')
+	{
+		if (keysm == XK_d)
+			draw_image(map, map->player_right, j + 1, i + 1);
+		else if (keysm == XK_a)
+			draw_image(map, map->player_left, j + 1, i + 1);
+		else if (keysm == XK_w)
+			draw_image(map, map->player_up, j + 1, i + 1);
+		else if (keysm == XK_s)
+			draw_image(map, map->player_down, j + 1, i + 1);
+	}
+	else if (map->map[i][j] == 'E')
+		draw_image(map, map->exit_inactive, j + 1, i + 1);
+	else if (map->map[i][j] == 'C')
+		draw_image(map, map->collectible, j + 1, i + 1);
+	else
+		draw_image(map, map->background, j + 1, i + 1);
+}
+
+void	render_map(t_map *map, int keysm)
 {
 	int	i;
 	int	j;
 
-	set_tiles(map);
 	draw_water(map);
 	draw_border(map);
 	i = 1;
@@ -342,20 +414,52 @@ void	render_map(t_map *map)
 		j = 1;
 		while (map->map[i][j + 1])
 		{
-			if (map->map[i][j] == '1')
-				draw_image(map, map->obstacle, j + 1, i + 1);
-			else if (map->map[i][j] == 'P')
-				draw_image(map, map->player_right, j + 1, i + 1);
-			else if (map->map[i][j] == 'E')
-				draw_image(map, map->exit_inactive, j + 1, i + 1);
-			else if (map->map[i][j] == 'C')
-				draw_image(map, map->collectible, j + 1, i + 1);
-			else
-				draw_image(map, map->background, j + 1, i + 1);
+			check_and_draw(map, i, j, keysm);
 			j++;
 		}
 		i++;
 	}
+}
+
+void	move_player(t_map *map, int x, int y, int keysm)
+{
+	int	new_x;
+	int	new_y;
+
+	new_x = map->player_pos[0] + x;
+	new_y = map->player_pos[1] + y;
+	if (map->map[new_x][new_y] == 'C')
+		map->c_count--;
+	if (map->map[new_x][new_y] != '1' && (map->map[new_x][new_y] != 'E'))
+	{
+		if (map->map[new_x][new_y] != 'E')
+			map->map[map->player_pos[0]][map->player_pos[1]] = '0';
+		map->player_pos[0] = new_x;
+		map->player_pos[1] = new_y;
+		map->map[new_x][new_y] = 'P';
+		render_map(map, keysm);
+	}
+}
+
+int	handle_key(int keysym, t_map *map)
+{
+	if (keysym == XK_w)
+		move_player(map, -1, 0, keysym);
+	if (keysym == XK_s)
+		move_player(map, 1, 0, keysym);
+	if (keysym == XK_a)
+		move_player(map, 0, -1, keysym);
+	if (keysym == XK_d)
+		move_player(map, 0, 1, keysym);
+	if (keysym == XK_Escape)
+		destructor(map);
+	return (0);
+}
+
+int	handle_exit(t_map *map)
+{
+	destructor(map);
+	return (0);
 }
 
 int	main(int argc, char *argv[])
@@ -370,7 +474,10 @@ int	main(int argc, char *argv[])
 	if (validate_map(&map))
 		return (destructor(&map), ft_printf("Invalid map\n"), 1);
 	start_game_window(&map);
-	render_map(&map);
+	set_tiles(&map);
+	render_map(&map, XK_d);
+	mlx_hook(map.window, 2, 1L << 0, &handle_key, &map);
+	mlx_hook(map.window, 17, 0, &handle_exit, &map);
 	mlx_loop(map.mlx);
 	return (destructor(&map), 0);
 }
