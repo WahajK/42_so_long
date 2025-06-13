@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/12 18:53:24 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/13 16:55:19 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ char	*trim(char *arr)
 	return (arr);
 }
 
-int	illegal_char(int row, char *str, t_map *map)
+int	illegal_char(int row, char *str, t_vars *map)
 {
 	int	i;
 
@@ -64,7 +64,7 @@ int	illegal_char(int row, char *str, t_map *map)
 	return (0);
 }
 
-int	set_counts(t_map *map, char *fname)
+int	set_counts(t_vars *map, char *fname)
 {
 	int		fd;
 	char	*str;
@@ -84,7 +84,7 @@ int	set_counts(t_map *map, char *fname)
 		map->c_count += char_count(str, 'C');
 		map->p_count += char_count(str, 'P');
 		map->e_count += char_count(str, 'E');
-		map->x_count += char_count(str, 'X');
+		map->ex_count += char_count(str, 'X');
 		free(str);
 		str = trim(get_next_line(fd));
 	}
@@ -93,7 +93,7 @@ int	set_counts(t_map *map, char *fname)
 	return (map->y_count = flag[0], close (fd), 0);
 }
 
-int	read_map(char *fname, t_map *map)
+int	read_map(char *fname, t_vars *map)
 {
 	int		fd;
 	int		i;
@@ -119,7 +119,7 @@ int	read_map(char *fname, t_map *map)
 	return (0);
 }
 
-void	print_map(t_map *map)
+void	print_vars(t_vars *map)
 {
 	int	i;
 
@@ -161,7 +161,7 @@ void	solve_maze(char **map, int *flags, int px, int py)
 	solve_maze(map, flags, px, py - 1);
 }
 
-int	check_escape(t_map *map)
+int	check_escape(t_vars *map)
 {
 	char	**map_copy;
 	int		flags[2];
@@ -174,7 +174,7 @@ int	check_escape(t_map *map)
 	return (destructor_map(map_copy), 0);
 }
 
-int	check_borders(t_map *map)
+int	check_borders(t_vars *map)
 {
 	int	i;
 
@@ -197,7 +197,7 @@ int	check_borders(t_map *map)
 	return (0);
 }
 
-int	validate_map(t_map *map)
+int	validate_map(t_vars *map)
 {
 	if (check_borders(map) || check_escape(map))
 		return (1);
@@ -216,7 +216,7 @@ void	destructor_map(char **map)
 	free(map);
 }
 
-void	destroy_images(t_map *map)
+void	destroy_images(t_vars *map)
 {
 	if (map->obstacle)
 		mlx_destroy_image(map->mlx, map->obstacle);
@@ -230,6 +230,14 @@ void	destroy_images(t_map *map)
 		mlx_destroy_image(map->mlx, map->player_left);
 	if (map->player_right)
 		mlx_destroy_image(map->mlx, map->player_right);
+	if (map->enemy_down)
+		mlx_destroy_image(map->mlx, map->enemy_down);
+	if (map->enemy_up)
+		mlx_destroy_image(map->mlx, map->enemy_up);
+	if (map->enemy_left)
+		mlx_destroy_image(map->mlx, map->enemy_left);
+	if (map->enemy_right)
+		mlx_destroy_image(map->mlx, map->enemy_right);
 	if (map->water)
 		mlx_destroy_image(map->mlx, map->water);
 	if (map->exit_active)
@@ -256,7 +264,7 @@ void	destroy_images(t_map *map)
 		mlx_destroy_image(map->mlx, map->collectible);
 }
 
-void	destructor(t_map *map)
+void	destructor(t_vars *map)
 {
 	destructor_map(map->map);
 	destroy_images(map);
@@ -270,7 +278,7 @@ void	destructor(t_map *map)
 	exit(0);
 }
 
-void	start_game_window(t_map *map)
+void	start_game_window(t_vars *map)
 {
 	int	size_x;
 	int	size_y;
@@ -288,7 +296,7 @@ void	start_game_window(t_map *map)
 		destructor(map);
 }
 
-void	set_tiles(t_map *map)
+void	set_tiles(t_vars *map)
 {
 	int		tile_size;
 	void	*(*f)(void *, char *, int *, int *);
@@ -301,6 +309,10 @@ void	set_tiles(t_map *map)
 	map->player_up = f(map->mlx, PLAYER_UP, &tile_size, &tile_size);
 	map->player_left = f(map->mlx, PLAYER_LEFT, &tile_size, &tile_size);
 	map->player_right = f(map->mlx, PLAYER_RIGHT, &tile_size, &tile_size);
+	map->enemy_down = f(map->mlx, ENEMY_DOWN, &tile_size, &tile_size);
+	map->enemy_up = f(map->mlx, ENEMY_UP, &tile_size, &tile_size);
+	map->enemy_left = f(map->mlx, ENEMY_LEFT, &tile_size, &tile_size);
+	map->enemy_right = f(map->mlx, ENEMY_RIGHT, &tile_size, &tile_size);
 	map->water = f(map->mlx, WATER, &tile_size, &tile_size);
 	map->exit_active = f(map->mlx, EXIT_ACTIVE, &tile_size, &tile_size);
 	map->exit_inactive = f(map->mlx, EXIT_INACTIVE, &tile_size, &tile_size);
@@ -315,13 +327,13 @@ void	set_tiles(t_map *map)
 	map->collectible = f(map->mlx, COLLECTIBLE, &tile_size, &tile_size);
 }
 
-void	draw_image(t_map *map, void *img, int x, int y)
+void	draw_image(t_vars *map, void *img, int x, int y)
 {
 	mlx_put_image_to_window(map->mlx, map->window, \
 		img, TILE_SIZE * x, TILE_SIZE * y);
 }
 
-void	draw_water(t_map *map)
+void	draw_water(t_vars *map)
 {
 	int	i;
 
@@ -339,7 +351,7 @@ void	draw_water(t_map *map)
 		draw_image(map, map->water, map->x_count + 1, i++);
 }
 
-void	draw_border(t_map *map)
+void	draw_border(t_vars *map)
 {
 	int	i;
 
@@ -366,7 +378,7 @@ void	draw_border(t_map *map)
 	continue_border(map);
 }
 
-void	continue_border(t_map *map)
+void	continue_border(t_vars *map)
 {
 	int	i;
 
@@ -378,7 +390,7 @@ void	continue_border(t_map *map)
 		draw_image(map, map->right_tile, map->x_count, i++);
 }
 
-void	check_and_draw(t_map *map, int i, int j, int keysm)
+void	check_and_draw(t_vars *map, int i, int j, int keysm)
 {
 	if (map->map[i][j] == '1')
 		draw_image(map, map->obstacle, j + 1, i + 1);
@@ -393,6 +405,8 @@ void	check_and_draw(t_map *map, int i, int j, int keysm)
 		else if (keysm == XK_s)
 			draw_image(map, map->player_down, j + 1, i + 1);
 	}
+	else if (map->map[i][j] == 'X')
+		draw_image(map, map->enemy_right, j + 1, i + 1);
 	else if (map->map[i][j] == 'E')
 		draw_image(map, map->exit_inactive, j + 1, i + 1);
 	else if (map->map[i][j] == 'C')
@@ -401,7 +415,7 @@ void	check_and_draw(t_map *map, int i, int j, int keysm)
 		draw_image(map, map->background, j + 1, i + 1);
 }
 
-void	render_map(t_map *map, int keysm)
+void	render_map(t_vars *map, int keysm)
 {
 	int	i;
 	int	j;
@@ -421,7 +435,7 @@ void	render_map(t_map *map, int keysm)
 	}
 }
 
-void	move_player(t_map *map, int x, int y, int keysm)
+void	move_player(t_vars *map, int x, int y, int keysm)
 {
 	int	new_x;
 	int	new_y;
@@ -441,7 +455,7 @@ void	move_player(t_map *map, int x, int y, int keysm)
 	}
 }
 
-int	handle_key(int keysym, t_map *map)
+int	handle_key(int keysym, t_vars *map)
 {
 	if (keysym == XK_w)
 		move_player(map, -1, 0, keysym);
@@ -456,17 +470,29 @@ int	handle_key(int keysym, t_map *map)
 	return (0);
 }
 
-int	handle_exit(t_map *map)
+int	handle_exit(t_vars *map)
 {
 	destructor(map);
 	return (0);
 }
 
+// void	update_game(t_vars *map)
+// {
+// 	static int	frame = 0;
+
+// 	frame++;
+// 	if (frame % 30 == 0)
+// 	{
+// 		move_enemies(map);
+// 		render_map(map, XK_d);
+// 	}
+// }
+
 int	main(int argc, char *argv[])
 {
-	t_map	map;
+	t_vars	map;
 
-	ft_bzero(&map, sizeof(t_map));
+	ft_bzero(&map, sizeof(t_vars));
 	if (argc != 2)
 		return (ft_printf("Invalid number of arguments\n"), 1);
 	if (check_extension(argv[1]) || read_map(argv[1], &map))
@@ -478,6 +504,7 @@ int	main(int argc, char *argv[])
 	render_map(&map, XK_d);
 	mlx_hook(map.window, 2, 1L << 0, &handle_key, &map);
 	mlx_hook(map.window, 17, 0, &handle_exit, &map);
+	// mlx_loop_hook(map.mlx, &update_game, &map);
 	mlx_loop(map.mlx);
 	return (destructor(&map), 0);
 }
