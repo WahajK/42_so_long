@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/13 16:55:19 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/14 15:57:58 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,8 @@ int	illegal_char(int row, char *str, t_vars *map)
 		{
 			if (str[i] == 'P')
 			{
-				map->player_pos[0] = row;
-				map->player_pos[1] = i;
+				map->player.x = row;
+				map->player.y = i;
 			}
 		}
 		else
@@ -168,7 +168,7 @@ int	check_escape(t_vars *map)
 
 	ft_bzero(flags, sizeof(int) * 2);
 	map_copy = dup_map(map->y_count, map->map);
-	solve_maze(map_copy, flags, map->player_pos[0], map->player_pos[1]);
+	solve_maze(map_copy, flags, map->player.x, map->player.y);
 	if (!flags[0] || !flags[1])
 		return (destructor_map(map_copy), 1);
 	return (destructor_map(map_copy), 0);
@@ -216,6 +216,30 @@ void	destructor_map(char **map)
 	free(map);
 }
 
+void	destroy_enemy_images(t_vars *var)
+{
+	int	i;
+	int	j;
+
+	i = 0;
+	while (i < 2)
+	{
+		j = 0;
+		while (j < 7)
+			mlx_destroy_image(var->mlx, var->enemies->frames[i][j++]);
+		i++;
+	}
+}
+
+void	destroy_collectible_images(t_vars *var)
+{
+	int	i;
+
+	i = 0;
+	while (i < 7)
+		mlx_destroy_image(var->mlx, var->collectibles->frames[i++]);
+}
+
 void	destroy_images(t_vars *map)
 {
 	if (map->obstacle)
@@ -230,14 +254,8 @@ void	destroy_images(t_vars *map)
 		mlx_destroy_image(map->mlx, map->player_left);
 	if (map->player_right)
 		mlx_destroy_image(map->mlx, map->player_right);
-	if (map->enemy_down)
-		mlx_destroy_image(map->mlx, map->enemy_down);
-	if (map->enemy_up)
-		mlx_destroy_image(map->mlx, map->enemy_up);
-	if (map->enemy_left)
-		mlx_destroy_image(map->mlx, map->enemy_left);
-	if (map->enemy_right)
-		mlx_destroy_image(map->mlx, map->enemy_right);
+	if (map->ex_count != 0)
+		destroy_enemy_images(map);
 	if (map->water)
 		mlx_destroy_image(map->mlx, map->water);
 	if (map->exit_active)
@@ -260,8 +278,8 @@ void	destroy_images(t_vars *map)
 		mlx_destroy_image(map->mlx, map->left_tile);
 	if (map->right_tile)
 		mlx_destroy_image(map->mlx, map->right_tile);
-	if (map->collectible)
-		mlx_destroy_image(map->mlx, map->collectible);
+	if (map->collectibles)
+		destroy_collectible_images(map);
 }
 
 void	destructor(t_vars *map)
@@ -309,10 +327,16 @@ void	set_tiles(t_vars *map)
 	map->player_up = f(map->mlx, PLAYER_UP, &tile_size, &tile_size);
 	map->player_left = f(map->mlx, PLAYER_LEFT, &tile_size, &tile_size);
 	map->player_right = f(map->mlx, PLAYER_RIGHT, &tile_size, &tile_size);
-	map->enemy_down = f(map->mlx, ENEMY_DOWN, &tile_size, &tile_size);
-	map->enemy_up = f(map->mlx, ENEMY_UP, &tile_size, &tile_size);
-	map->enemy_left = f(map->mlx, ENEMY_LEFT, &tile_size, &tile_size);
-	map->enemy_right = f(map->mlx, ENEMY_RIGHT, &tile_size, &tile_size);
+	if (map->ex_count != 0)
+	{
+		map->enemies->frames[0][0] = f(map->mlx, ENEMY_RIGHT1, &tile_size, &tile_size);
+		map->enemies->frames[0][1] = f(map->mlx, ENEMY_RIGHT2, &tile_size, &tile_size);
+		map->enemies->frames[0][2] = f(map->mlx, ENEMY_RIGHT3, &tile_size, &tile_size);
+		map->enemies->frames[0][3] = f(map->mlx, ENEMY_RIGHT4, &tile_size, &tile_size);
+		map->enemies->frames[0][4] = f(map->mlx, ENEMY_RIGHT5, &tile_size, &tile_size);
+		map->enemies->frames[0][5] = f(map->mlx, ENEMY_RIGHT6, &tile_size, &tile_size);
+		map->enemies->frames[0][6] = f(map->mlx, ENEMY_RIGHT7, &tile_size, &tile_size);
+	}
 	map->water = f(map->mlx, WATER, &tile_size, &tile_size);
 	map->exit_active = f(map->mlx, EXIT_ACTIVE, &tile_size, &tile_size);
 	map->exit_inactive = f(map->mlx, EXIT_INACTIVE, &tile_size, &tile_size);
@@ -324,7 +348,13 @@ void	set_tiles(t_vars *map)
 	map->top_tile = f(map->mlx, TOP_TILE, &tile_size, &tile_size);
 	map->left_tile = f(map->mlx, LEFT_TILE, &tile_size, &tile_size);
 	map->right_tile = f(map->mlx, RIGHT_TILE, &tile_size, &tile_size);
-	map->collectible = f(map->mlx, COLLECTIBLE, &tile_size, &tile_size);
+	map->collectibles->frames[0] = f(map->mlx, COLLECTIBLE1, &tile_size, &tile_size);
+	map->collectibles->frames[1] = f(map->mlx, COLLECTIBLE2, &tile_size, &tile_size);
+	map->collectibles->frames[2] = f(map->mlx, COLLECTIBLE3, &tile_size, &tile_size);
+	map->collectibles->frames[3] = f(map->mlx, COLLECTIBLE4, &tile_size, &tile_size);
+	map->collectibles->frames[4] = f(map->mlx, COLLECTIBLE5, &tile_size, &tile_size);
+	map->collectibles->frames[5] = f(map->mlx, COLLECTIBLE6, &tile_size, &tile_size);
+	map->collectibles->frames[6] = f(map->mlx, COLLECTIBLE7, &tile_size, &tile_size);
 }
 
 void	draw_image(t_vars *map, void *img, int x, int y)
@@ -390,32 +420,32 @@ void	continue_border(t_vars *map)
 		draw_image(map, map->right_tile, map->x_count, i++);
 }
 
-void	check_and_draw(t_vars *map, int i, int j, int keysm)
+void	check_and_draw(t_vars *map, int i, int j)
 {
 	if (map->map[i][j] == '1')
 		draw_image(map, map->obstacle, j + 1, i + 1);
 	else if (map->map[i][j] == 'P')
 	{
-		if (keysm == XK_d)
+		if (map->player.direction == 0)
 			draw_image(map, map->player_right, j + 1, i + 1);
-		else if (keysm == XK_a)
+		else if (map->player.direction == 1)
 			draw_image(map, map->player_left, j + 1, i + 1);
-		else if (keysm == XK_w)
+		else if (map->player.direction == 2)
 			draw_image(map, map->player_up, j + 1, i + 1);
-		else if (keysm == XK_s)
+		else if (map->player.direction == 3)
 			draw_image(map, map->player_down, j + 1, i + 1);
 	}
 	else if (map->map[i][j] == 'X')
-		draw_image(map, map->enemy_right, j + 1, i + 1);
+		draw_image(map, map->enemies->frames[map->enemies->direction][map->enemies->frame_index], j + 1, i + 1);
 	else if (map->map[i][j] == 'E')
 		draw_image(map, map->exit_inactive, j + 1, i + 1);
 	else if (map->map[i][j] == 'C')
-		draw_image(map, map->collectible, j + 1, i + 1);
+		draw_image(map, map->collectibles->frames[map->collectibles->frame_index], j + 1, i + 1);
 	else
 		draw_image(map, map->background, j + 1, i + 1);
 }
 
-void	render_map(t_vars *map, int keysm)
+void	render_map(t_vars *map)
 {
 	int	i;
 	int	j;
@@ -428,7 +458,7 @@ void	render_map(t_vars *map, int keysm)
 		j = 1;
 		while (map->map[i][j + 1])
 		{
-			check_and_draw(map, i, j, keysm);
+			check_and_draw(map, i, j);
 			j++;
 		}
 		i++;
@@ -440,31 +470,31 @@ void	move_player(t_vars *map, int x, int y, int keysm)
 	int	new_x;
 	int	new_y;
 
-	new_x = map->player_pos[0] + x;
-	new_y = map->player_pos[1] + y;
+	new_x = map->player.x + x;
+	new_y = map->player.y + y;
 	if (map->map[new_x][new_y] == 'C')
 		map->c_count--;
 	if (map->map[new_x][new_y] != '1' && (map->map[new_x][new_y] != 'E'))
 	{
 		if (map->map[new_x][new_y] != 'E')
-			map->map[map->player_pos[0]][map->player_pos[1]] = '0';
-		map->player_pos[0] = new_x;
-		map->player_pos[1] = new_y;
+			map->map[map->player.x][map->player.y] = '0';
+		map->player.x = new_x;
+		map->player.y = new_y;
 		map->map[new_x][new_y] = 'P';
-		render_map(map, keysm);
+		render_map(map);
 	}
 }
 
 int	handle_key(int keysym, t_vars *map)
 {
 	if (keysym == XK_w)
-		move_player(map, -1, 0, keysym);
+		move_player(map, -1, 0, 2);
 	if (keysym == XK_s)
-		move_player(map, 1, 0, keysym);
+		move_player(map, 1, 0, 3);
 	if (keysym == XK_a)
-		move_player(map, 0, -1, keysym);
+		move_player(map, 0, -1, 1);
 	if (keysym == XK_d)
-		move_player(map, 0, 1, keysym);
+		move_player(map, 0, 1, 0);
 	if (keysym == XK_Escape)
 		destructor(map);
 	return (0);
@@ -476,35 +506,49 @@ int	handle_exit(t_vars *map)
 	return (0);
 }
 
-// void	update_game(t_vars *map)
-// {
-// 	static int	frame = 0;
+int	update_game(t_vars *vars)
+{
+	static int	frame = 0;
 
-// 	frame++;
-// 	if (frame % 30 == 0)
-// 	{
-// 		move_enemies(map);
-// 		render_map(map, XK_d);
-// 	}
-// }
+	frame++;
+	if (frame % 500 == 0 && !vars->collectibles->flag)
+	{
+		vars->collectibles->frame_index++;
+		if (vars->collectibles->frame_index >= 7)
+		{
+			vars->collectibles->frame_index = 6;
+			vars->collectibles->flag = 1;
+		}
+	}
+	if (frame % 30 == 0)
+	{
+		render_map(vars);
+	}
+}
+
+void	init_vars(t_vars *vars)
+{
+	vars->enemies = malloc(sizeof(t_enemy) * vars->ex_count);
+	vars->collectibles = malloc(sizeof(t_collectible) * vars->c_count);
+}
 
 int	main(int argc, char *argv[])
 {
-	t_vars	map;
+	t_vars	vars;
 
-	ft_bzero(&map, sizeof(t_vars));
+	ft_bzero(&vars, sizeof(t_vars));
 	if (argc != 2)
 		return (ft_printf("Invalid number of arguments\n"), 1);
-	if (check_extension(argv[1]) || read_map(argv[1], &map))
+	if (check_extension(argv[1]) || read_map(argv[1], &vars))
 		return (ft_printf("Invalid map or file\n"), 1);
-	if (validate_map(&map))
-		return (destructor(&map), ft_printf("Invalid map\n"), 1);
-	start_game_window(&map);
-	set_tiles(&map);
-	render_map(&map, XK_d);
-	mlx_hook(map.window, 2, 1L << 0, &handle_key, &map);
-	mlx_hook(map.window, 17, 0, &handle_exit, &map);
-	// mlx_loop_hook(map.mlx, &update_game, &map);
-	mlx_loop(map.mlx);
-	return (destructor(&map), 0);
+	if (validate_map(&vars))
+		return (destructor(&vars), ft_printf("Invalid map\n"), 1);
+	init_vars(&vars);
+	set_tiles(&vars);
+	start_game_window(&vars);
+	mlx_hook(vars.window, 2, 1L << 0, &handle_key, &vars);
+	mlx_hook(vars.window, 17, 0, &handle_exit, &vars);
+	mlx_loop_hook(vars.mlx, &update_game, &vars);
+	mlx_loop(vars.mlx);
+	return (destructor(&vars), 0);
 }
