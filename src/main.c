@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/14 15:57:58 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/14 18:47:01 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -222,7 +222,7 @@ void	destroy_enemy_images(t_vars *var)
 	int	j;
 
 	i = 0;
-	while (i < 2)
+	while (i < 1)
 	{
 		j = 0;
 		while (j < 7)
@@ -258,10 +258,11 @@ void	destroy_images(t_vars *map)
 		destroy_enemy_images(map);
 	if (map->water)
 		mlx_destroy_image(map->mlx, map->water);
-	if (map->exit_active)
-		mlx_destroy_image(map->mlx, map->exit_active);
-	if (map->exit_inactive)
-		mlx_destroy_image(map->mlx, map->exit_inactive);
+	if (map->exit.img)
+	{
+		mlx_destroy_image(map->mlx, map->exit.img[0]);
+		mlx_destroy_image(map->mlx, map->exit.img[1]);
+	}
 	if (map->bot_left_tile)
 		mlx_destroy_image(map->mlx, map->bot_left_tile);
 	if (map->bot_right_tile)
@@ -293,6 +294,8 @@ void	destructor(t_vars *map)
 		mlx_destroy_display(map->mlx);
 		free(map->mlx);
 	}
+	free(map->enemies);
+	free(map->collectibles);
 	exit(0);
 }
 
@@ -338,8 +341,8 @@ void	set_tiles(t_vars *map)
 		map->enemies->frames[0][6] = f(map->mlx, ENEMY_RIGHT7, &tile_size, &tile_size);
 	}
 	map->water = f(map->mlx, WATER, &tile_size, &tile_size);
-	map->exit_active = f(map->mlx, EXIT_ACTIVE, &tile_size, &tile_size);
-	map->exit_inactive = f(map->mlx, EXIT_INACTIVE, &tile_size, &tile_size);
+	map->exit.img[0] = f(map->mlx, EXIT_INACTIVE, &tile_size, &tile_size);
+	map->exit.img[1] = f(map->mlx, EXIT_ACTIVE, &tile_size, &tile_size);
 	map->bot_left_tile = f(map->mlx, BOT_LEFT_TILE, &tile_size, &tile_size);
 	map->bot_right_tile = f(map->mlx, BOT_RIGHT_TILE, &tile_size, &tile_size);
 	map->bot_tile = f(map->mlx, BOT_TILE, &tile_size, &tile_size);
@@ -438,7 +441,7 @@ void	check_and_draw(t_vars *map, int i, int j)
 	else if (map->map[i][j] == 'X')
 		draw_image(map, map->enemies->frames[map->enemies->direction][map->enemies->frame_index], j + 1, i + 1);
 	else if (map->map[i][j] == 'E')
-		draw_image(map, map->exit_inactive, j + 1, i + 1);
+		draw_image(map, map->exit.img[map->exit.flag], j + 1, i + 1);
 	else if (map->map[i][j] == 'C')
 		draw_image(map, map->collectibles->frames[map->collectibles->frame_index], j + 1, i + 1);
 	else
@@ -465,7 +468,7 @@ void	render_map(t_vars *map)
 	}
 }
 
-void	move_player(t_vars *map, int x, int y, int keysm)
+void	move_player(t_vars *map, int x, int y)
 {
 	int	new_x;
 	int	new_y;
@@ -488,13 +491,25 @@ void	move_player(t_vars *map, int x, int y, int keysm)
 int	handle_key(int keysym, t_vars *map)
 {
 	if (keysym == XK_w)
-		move_player(map, -1, 0, 2);
+	{
+		map->player.direction = 2;
+		move_player(map, -1, 0);
+	}
 	if (keysym == XK_s)
-		move_player(map, 1, 0, 3);
+	{
+		map->player.direction = 3;
+		move_player(map, 1, 0);
+	}
 	if (keysym == XK_a)
-		move_player(map, 0, -1, 1);
+	{
+		map->player.direction = 1;
+		move_player(map, 0, -1);
+	}
 	if (keysym == XK_d)
-		move_player(map, 0, 1, 0);
+	{
+		map->player.direction = 0;
+		move_player(map, 0, 1);
+	}
 	if (keysym == XK_Escape)
 		destructor(map);
 	return (0);
@@ -511,7 +526,7 @@ int	update_game(t_vars *vars)
 	static int	frame = 0;
 
 	frame++;
-	if (frame % 500 == 0 && !vars->collectibles->flag)
+	if (frame % 300 == 0 && !vars->collectibles->flag)
 	{
 		vars->collectibles->frame_index++;
 		if (vars->collectibles->frame_index >= 7)
@@ -520,8 +535,16 @@ int	update_game(t_vars *vars)
 			vars->collectibles->flag = 1;
 		}
 	}
+	if (frame % 300 == 0)
+	{
+		vars->enemies->frame_index++;
+		if (vars->enemies->frame_index >= 7)
+			vars->enemies->frame_index = 0;
+	}
 	if (frame % 30 == 0)
 	{
+		if (vars->c_count == 0)
+			vars->exit.flag = 1;
 		render_map(vars);
 	}
 }
@@ -544,8 +567,8 @@ int	main(int argc, char *argv[])
 	if (validate_map(&vars))
 		return (destructor(&vars), ft_printf("Invalid map\n"), 1);
 	init_vars(&vars);
-	set_tiles(&vars);
 	start_game_window(&vars);
+	set_tiles(&vars);
 	mlx_hook(vars.window, 2, 1L << 0, &handle_key, &vars);
 	mlx_hook(vars.window, 17, 0, &handle_exit, &vars);
 	mlx_loop_hook(vars.mlx, &update_game, &vars);
