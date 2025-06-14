@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/14 18:47:01 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/14 19:57:27 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,20 +240,28 @@ void	destroy_collectible_images(t_vars *var)
 		mlx_destroy_image(var->mlx, var->collectibles->frames[i++]);
 }
 
+void	free_player_images(t_vars *vars)
+{
+	int	i;
+	int	j;
+
+	i = 0;
+	while (i < 2)
+	{
+		j = 0;
+		while (j < 6)
+			mlx_destroy_image(vars->mlx, vars->player.LRframes[i][j++]);
+		i++;
+	}
+}
+
 void	destroy_images(t_vars *map)
 {
 	if (map->obstacle)
 		mlx_destroy_image(map->mlx, map->obstacle);
 	if (map->background)
 		mlx_destroy_image(map->mlx, map->background);
-	if (map->player_down)
-		mlx_destroy_image(map->mlx, map->player_down);
-	if (map->player_up)
-		mlx_destroy_image(map->mlx, map->player_up);
-	if (map->player_left)
-		mlx_destroy_image(map->mlx, map->player_left);
-	if (map->player_right)
-		mlx_destroy_image(map->mlx, map->player_right);
+	free_player_images(map);
 	if (map->ex_count != 0)
 		destroy_enemy_images(map);
 	if (map->water)
@@ -326,10 +334,18 @@ void	set_tiles(t_vars *map)
 	f = mlx_xpm_file_to_image;
 	map->obstacle = f(map->mlx, OBSTACLE, &tile_size, &tile_size);
 	map->background = f(map->mlx, BACKGROUND, &tile_size, &tile_size);
-	map->player_down = f(map->mlx, PLAYER_DOWN, &tile_size, &tile_size);
-	map->player_up = f(map->mlx, PLAYER_UP, &tile_size, &tile_size);
-	map->player_left = f(map->mlx, PLAYER_LEFT, &tile_size, &tile_size);
-	map->player_right = f(map->mlx, PLAYER_RIGHT, &tile_size, &tile_size);
+	map->player.LRframes[0][0] = f(map->mlx, PLAYER_RIGHT1, &tile_size, &tile_size);
+	map->player.LRframes[0][1] = f(map->mlx, PLAYER_RIGHT2, &tile_size, &tile_size);
+	map->player.LRframes[0][2] = f(map->mlx, PLAYER_RIGHT3, &tile_size, &tile_size);
+	map->player.LRframes[0][3] = f(map->mlx, PLAYER_RIGHT4, &tile_size, &tile_size);
+	map->player.LRframes[0][4] = f(map->mlx, PLAYER_RIGHT5, &tile_size, &tile_size);
+	map->player.LRframes[0][5] = f(map->mlx, PLAYER_RIGHT6, &tile_size, &tile_size);
+	map->player.LRframes[1][0] = f(map->mlx, PLAYER_LEFT1, &tile_size, &tile_size);
+	map->player.LRframes[1][1] = f(map->mlx, PLAYER_LEFT2, &tile_size, &tile_size);
+	map->player.LRframes[1][2] = f(map->mlx, PLAYER_LEFT3, &tile_size, &tile_size);
+	map->player.LRframes[1][3] = f(map->mlx, PLAYER_LEFT4, &tile_size, &tile_size);
+	map->player.LRframes[1][4] = f(map->mlx, PLAYER_LEFT5, &tile_size, &tile_size);
+	map->player.LRframes[1][5] = f(map->mlx, PLAYER_LEFT6, &tile_size, &tile_size);
 	if (map->ex_count != 0)
 	{
 		map->enemies->frames[0][0] = f(map->mlx, ENEMY_RIGHT1, &tile_size, &tile_size);
@@ -430,13 +446,13 @@ void	check_and_draw(t_vars *map, int i, int j)
 	else if (map->map[i][j] == 'P')
 	{
 		if (map->player.direction == 0)
-			draw_image(map, map->player_right, j + 1, i + 1);
+			draw_image(map, map->player.LRframes[0][map->player.LRframe_index], j + 1, i + 1);
 		else if (map->player.direction == 1)
-			draw_image(map, map->player_left, j + 1, i + 1);
+			draw_image(map, map->player.LRframes[1][map->player.LRframe_index], j + 1, i + 1);
 		else if (map->player.direction == 2)
-			draw_image(map, map->player_up, j + 1, i + 1);
+			draw_image(map, map->player.LRframes[0][map->player.LRframe_index], j + 1, i + 1);
 		else if (map->player.direction == 3)
-			draw_image(map, map->player_down, j + 1, i + 1);
+			draw_image(map, map->player.LRframes[0][map->player.LRframe_index], j + 1, i + 1);
 	}
 	else if (map->map[i][j] == 'X')
 		draw_image(map, map->enemies->frames[map->enemies->direction][map->enemies->frame_index], j + 1, i + 1);
@@ -538,6 +554,10 @@ int	update_game(t_vars *vars)
 	if (frame % 300 == 0)
 	{
 		vars->enemies->frame_index++;
+		if (vars->player.direction == 0 || vars->player.direction == 1)
+			vars->player.LRframe_index++;
+		if (vars->player.LRframe_index >= 6)
+			vars->player.LRframe_index = 0;
 		if (vars->enemies->frame_index >= 7)
 			vars->enemies->frame_index = 0;
 	}
@@ -573,5 +593,5 @@ int	main(int argc, char *argv[])
 	mlx_hook(vars.window, 17, 0, &handle_exit, &vars);
 	mlx_loop_hook(vars.mlx, &update_game, &vars);
 	mlx_loop(vars.mlx);
-	return (destructor(&vars), 0);
+	return (0);
 }
