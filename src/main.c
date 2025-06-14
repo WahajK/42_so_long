@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/14 19:57:27 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/14 21:01:30 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,7 +250,7 @@ void	free_player_images(t_vars *vars)
 	{
 		j = 0;
 		while (j < 6)
-			mlx_destroy_image(vars->mlx, vars->player.LRframes[i][j++]);
+			mlx_destroy_image(vars->mlx, vars->player.frames[i][j++]);
 		i++;
 	}
 }
@@ -334,18 +334,18 @@ void	set_tiles(t_vars *map)
 	f = mlx_xpm_file_to_image;
 	map->obstacle = f(map->mlx, OBSTACLE, &tile_size, &tile_size);
 	map->background = f(map->mlx, BACKGROUND, &tile_size, &tile_size);
-	map->player.LRframes[0][0] = f(map->mlx, PLAYER_RIGHT1, &tile_size, &tile_size);
-	map->player.LRframes[0][1] = f(map->mlx, PLAYER_RIGHT2, &tile_size, &tile_size);
-	map->player.LRframes[0][2] = f(map->mlx, PLAYER_RIGHT3, &tile_size, &tile_size);
-	map->player.LRframes[0][3] = f(map->mlx, PLAYER_RIGHT4, &tile_size, &tile_size);
-	map->player.LRframes[0][4] = f(map->mlx, PLAYER_RIGHT5, &tile_size, &tile_size);
-	map->player.LRframes[0][5] = f(map->mlx, PLAYER_RIGHT6, &tile_size, &tile_size);
-	map->player.LRframes[1][0] = f(map->mlx, PLAYER_LEFT1, &tile_size, &tile_size);
-	map->player.LRframes[1][1] = f(map->mlx, PLAYER_LEFT2, &tile_size, &tile_size);
-	map->player.LRframes[1][2] = f(map->mlx, PLAYER_LEFT3, &tile_size, &tile_size);
-	map->player.LRframes[1][3] = f(map->mlx, PLAYER_LEFT4, &tile_size, &tile_size);
-	map->player.LRframes[1][4] = f(map->mlx, PLAYER_LEFT5, &tile_size, &tile_size);
-	map->player.LRframes[1][5] = f(map->mlx, PLAYER_LEFT6, &tile_size, &tile_size);
+	map->player.frames[0][0] = f(map->mlx, PLAYER_RIGHT1, &tile_size, &tile_size);
+	map->player.frames[0][1] = f(map->mlx, PLAYER_RIGHT2, &tile_size, &tile_size);
+	map->player.frames[0][2] = f(map->mlx, PLAYER_RIGHT3, &tile_size, &tile_size);
+	map->player.frames[0][3] = f(map->mlx, PLAYER_RIGHT4, &tile_size, &tile_size);
+	map->player.frames[0][4] = f(map->mlx, PLAYER_RIGHT5, &tile_size, &tile_size);
+	map->player.frames[0][5] = f(map->mlx, PLAYER_RIGHT6, &tile_size, &tile_size);
+	map->player.frames[1][0] = f(map->mlx, PLAYER_LEFT1, &tile_size, &tile_size);
+	map->player.frames[1][1] = f(map->mlx, PLAYER_LEFT2, &tile_size, &tile_size);
+	map->player.frames[1][2] = f(map->mlx, PLAYER_LEFT3, &tile_size, &tile_size);
+	map->player.frames[1][3] = f(map->mlx, PLAYER_LEFT4, &tile_size, &tile_size);
+	map->player.frames[1][4] = f(map->mlx, PLAYER_LEFT5, &tile_size, &tile_size);
+	map->player.frames[1][5] = f(map->mlx, PLAYER_LEFT6, &tile_size, &tile_size);
 	if (map->ex_count != 0)
 	{
 		map->enemies->frames[0][0] = f(map->mlx, ENEMY_RIGHT1, &tile_size, &tile_size);
@@ -446,13 +446,13 @@ void	check_and_draw(t_vars *map, int i, int j)
 	else if (map->map[i][j] == 'P')
 	{
 		if (map->player.direction == 0)
-			draw_image(map, map->player.LRframes[0][map->player.LRframe_index], j + 1, i + 1);
+			draw_image(map, map->player.frames[map->player.direction][map->player.frame_index], j + 1, i + 1);
 		else if (map->player.direction == 1)
-			draw_image(map, map->player.LRframes[1][map->player.LRframe_index], j + 1, i + 1);
+			draw_image(map, map->player.frames[map->player.direction][map->player.frame_index], j + 1, i + 1);
 		else if (map->player.direction == 2)
-			draw_image(map, map->player.LRframes[0][map->player.LRframe_index], j + 1, i + 1);
+			draw_image(map, map->player.frames[map->player.direction][map->player.frame_index], j + 1, i + 1);
 		else if (map->player.direction == 3)
-			draw_image(map, map->player.LRframes[0][map->player.LRframe_index], j + 1, i + 1);
+			draw_image(map, map->player.frames[map->player.direction][map->player.frame_index], j + 1, i + 1);
 	}
 	else if (map->map[i][j] == 'X')
 		draw_image(map, map->enemies->frames[map->enemies->direction][map->enemies->frame_index], j + 1, i + 1);
@@ -507,15 +507,9 @@ void	move_player(t_vars *map, int x, int y)
 int	handle_key(int keysym, t_vars *map)
 {
 	if (keysym == XK_w)
-	{
-		map->player.direction = 2;
 		move_player(map, -1, 0);
-	}
 	if (keysym == XK_s)
-	{
-		map->player.direction = 3;
 		move_player(map, 1, 0);
-	}
 	if (keysym == XK_a)
 	{
 		map->player.direction = 1;
@@ -554,10 +548,9 @@ int	update_game(t_vars *vars)
 	if (frame % 300 == 0)
 	{
 		vars->enemies->frame_index++;
-		if (vars->player.direction == 0 || vars->player.direction == 1)
-			vars->player.LRframe_index++;
-		if (vars->player.LRframe_index >= 6)
-			vars->player.LRframe_index = 0;
+		vars->player.frame_index++;
+		if (vars->player.frame_index >= 6)
+			vars->player.frame_index = 0;
 		if (vars->enemies->frame_index >= 7)
 			vars->enemies->frame_index = 0;
 	}
