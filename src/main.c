@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/14 21:01:30 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/15 02:19:03 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -237,7 +237,7 @@ void	destroy_collectible_images(t_vars *var)
 
 	i = 0;
 	while (i < 7)
-		mlx_destroy_image(var->mlx, var->collectibles->frames[i++]);
+		mlx_destroy_image(var->mlx, var->collectibles.frames[i++]);
 }
 
 void	free_player_images(t_vars *vars)
@@ -255,10 +255,19 @@ void	free_player_images(t_vars *vars)
 	}
 }
 
+void	destroy_obstacle_images(t_vars *vars)
+{
+	int	i;
+
+	i = 0;
+	while (i < 8)
+		if (vars->obstacle.frames[i])
+			mlx_destroy_image(vars->mlx, vars->obstacle.frames[i++]);
+}
+
 void	destroy_images(t_vars *map)
 {
-	if (map->obstacle)
-		mlx_destroy_image(map->mlx, map->obstacle);
+	destroy_obstacle_images(map);
 	if (map->background)
 		mlx_destroy_image(map->mlx, map->background);
 	free_player_images(map);
@@ -271,23 +280,23 @@ void	destroy_images(t_vars *map)
 		mlx_destroy_image(map->mlx, map->exit.img[0]);
 		mlx_destroy_image(map->mlx, map->exit.img[1]);
 	}
-	if (map->bot_left_tile)
-		mlx_destroy_image(map->mlx, map->bot_left_tile);
-	if (map->bot_right_tile)
-		mlx_destroy_image(map->mlx, map->bot_right_tile);
-	if (map->bot_tile)
-		mlx_destroy_image(map->mlx, map->bot_tile);
-	if (map->top_left_tile)
-		mlx_destroy_image(map->mlx, map->top_left_tile);
-	if (map->top_right_tile)
-		mlx_destroy_image(map->mlx, map->top_right_tile);
-	if (map->top_tile)
-		mlx_destroy_image(map->mlx, map->top_tile);
-	if (map->left_tile)
-		mlx_destroy_image(map->mlx, map->left_tile);
-	if (map->right_tile)
-		mlx_destroy_image(map->mlx, map->right_tile);
-	if (map->collectibles)
+	// if (map->bot_left_tile)
+	// 	mlx_destroy_image(map->mlx, map->bot_left_tile);
+	// if (map->bot_right_tile)
+	// 	mlx_destroy_image(map->mlx, map->bot_right_tile);
+	// if (map->bot_tile)
+	// 	mlx_destroy_image(map->mlx, map->bot_tile);
+	// if (map->top_left_tile)
+	// 	mlx_destroy_image(map->mlx, map->top_left_tile);
+	// if (map->top_right_tile)
+	// 	mlx_destroy_image(map->mlx, map->top_right_tile);
+	// if (map->borders.frames[0][map->borders.frame_index])
+	// 	mlx_destroy_image(map->mlx, map->borders.frames[0][map->borders.frame_index]);
+	// if (map->left_tile)
+	// 	mlx_destroy_image(map->mlx, map->left_tile);
+	// if (map->right_tile)
+	// 	mlx_destroy_image(map->mlx, map->right_tile);
+	if (map->collectibles.frames[0])
 		destroy_collectible_images(map);
 }
 
@@ -303,7 +312,6 @@ void	destructor(t_vars *map)
 		free(map->mlx);
 	}
 	free(map->enemies);
-	free(map->collectibles);
 	exit(0);
 }
 
@@ -325,55 +333,148 @@ void	start_game_window(t_vars *map)
 		destructor(map);
 }
 
-void	set_tiles(t_vars *map)
+void	set_obstacles(t_vars *vars, int tile_size)
+{
+	void	*(*f)(void *, char *, int *, int *);
+
+	f = mlx_xpm_file_to_image;
+	vars->obstacle.frames[0] = f(vars->mlx, OBSTACLE1, &tile_size, &tile_size);
+	vars->obstacle.frames[1] = f(vars->mlx, OBSTACLE2, &tile_size, &tile_size);
+	vars->obstacle.frames[2] = f(vars->mlx, OBSTACLE3, &tile_size, &tile_size);
+	vars->obstacle.frames[3] = f(vars->mlx, OBSTACLE4, &tile_size, &tile_size);
+	vars->obstacle.frames[4] = f(vars->mlx, OBSTACLE5, &tile_size, &tile_size);
+	vars->obstacle.frames[5] = f(vars->mlx, OBSTACLE6, &tile_size, &tile_size);
+	vars->obstacle.frames[6] = f(vars->mlx, OBSTACLE7, &tile_size, &tile_size);
+	vars->obstacle.frames[7] = f(vars->mlx, OBSTACLE8, &tile_size, &tile_size);
+}
+
+void	set_player(t_vars *vars, int tile_size)
+{
+	void	*(*f)(void *, char *, int *, int *);
+
+	f = mlx_xpm_file_to_image;
+	vars->player.frames[0][0] = f(vars->mlx, PLAYER_RIGHT1, &tile_size, &tile_size);
+	vars->player.frames[0][1] = f(vars->mlx, PLAYER_RIGHT2, &tile_size, &tile_size);
+	vars->player.frames[0][2] = f(vars->mlx, PLAYER_RIGHT3, &tile_size, &tile_size);
+	vars->player.frames[0][3] = f(vars->mlx, PLAYER_RIGHT4, &tile_size, &tile_size);
+	vars->player.frames[0][4] = f(vars->mlx, PLAYER_RIGHT5, &tile_size, &tile_size);
+	vars->player.frames[0][5] = f(vars->mlx, PLAYER_RIGHT6, &tile_size, &tile_size);
+	vars->player.frames[1][0] = f(vars->mlx, PLAYER_LEFT1, &tile_size, &tile_size);
+	vars->player.frames[1][1] = f(vars->mlx, PLAYER_LEFT2, &tile_size, &tile_size);
+	vars->player.frames[1][2] = f(vars->mlx, PLAYER_LEFT3, &tile_size, &tile_size);
+	vars->player.frames[1][3] = f(vars->mlx, PLAYER_LEFT4, &tile_size, &tile_size);
+	vars->player.frames[1][4] = f(vars->mlx, PLAYER_LEFT5, &tile_size, &tile_size);
+	vars->player.frames[1][5] = f(vars->mlx, PLAYER_LEFT6, &tile_size, &tile_size);
+}
+
+void	set_enemies(t_vars *vars, int tile_size)
+{
+	void	*(*f)(void *, char *, int *, int *);
+
+	f = mlx_xpm_file_to_image;
+	vars->enemies->frames[0][0] = f(vars->mlx, ENEMY_RIGHT1, &tile_size, &tile_size);
+	vars->enemies->frames[0][1] = f(vars->mlx, ENEMY_RIGHT2, &tile_size, &tile_size);
+	vars->enemies->frames[0][2] = f(vars->mlx, ENEMY_RIGHT3, &tile_size, &tile_size);
+	vars->enemies->frames[0][3] = f(vars->mlx, ENEMY_RIGHT4, &tile_size, &tile_size);
+	vars->enemies->frames[0][4] = f(vars->mlx, ENEMY_RIGHT5, &tile_size, &tile_size);
+	vars->enemies->frames[0][5] = f(vars->mlx, ENEMY_RIGHT6, &tile_size, &tile_size);
+	vars->enemies->frames[0][6] = f(vars->mlx, ENEMY_RIGHT7, &tile_size, &tile_size);
+}
+
+void	set_collectibles(t_vars *vars, int tile_size)
+{
+	void	*(*f)(void *, char *, int *, int *);
+
+	f = mlx_xpm_file_to_image;
+	vars->collectibles.frames[0] = f(vars->mlx, COLLECTIBLE1, &tile_size, &tile_size);
+	vars->collectibles.frames[1] = f(vars->mlx, COLLECTIBLE2, &tile_size, &tile_size);
+	vars->collectibles.frames[2] = f(vars->mlx, COLLECTIBLE3, &tile_size, &tile_size);
+	vars->collectibles.frames[3] = f(vars->mlx, COLLECTIBLE4, &tile_size, &tile_size);
+	vars->collectibles.frames[4] = f(vars->mlx, COLLECTIBLE5, &tile_size, &tile_size);
+	vars->collectibles.frames[5] = f(vars->mlx, COLLECTIBLE6, &tile_size, &tile_size);
+	vars->collectibles.frames[6] = f(vars->mlx, COLLECTIBLE7, &tile_size, &tile_size);
+}
+
+void	set_tiles(t_vars *vars)
 {
 	int		tile_size;
 	void	*(*f)(void *, char *, int *, int *);
 
 	tile_size = TILE_SIZE;
 	f = mlx_xpm_file_to_image;
-	map->obstacle = f(map->mlx, OBSTACLE, &tile_size, &tile_size);
-	map->background = f(map->mlx, BACKGROUND, &tile_size, &tile_size);
-	map->player.frames[0][0] = f(map->mlx, PLAYER_RIGHT1, &tile_size, &tile_size);
-	map->player.frames[0][1] = f(map->mlx, PLAYER_RIGHT2, &tile_size, &tile_size);
-	map->player.frames[0][2] = f(map->mlx, PLAYER_RIGHT3, &tile_size, &tile_size);
-	map->player.frames[0][3] = f(map->mlx, PLAYER_RIGHT4, &tile_size, &tile_size);
-	map->player.frames[0][4] = f(map->mlx, PLAYER_RIGHT5, &tile_size, &tile_size);
-	map->player.frames[0][5] = f(map->mlx, PLAYER_RIGHT6, &tile_size, &tile_size);
-	map->player.frames[1][0] = f(map->mlx, PLAYER_LEFT1, &tile_size, &tile_size);
-	map->player.frames[1][1] = f(map->mlx, PLAYER_LEFT2, &tile_size, &tile_size);
-	map->player.frames[1][2] = f(map->mlx, PLAYER_LEFT3, &tile_size, &tile_size);
-	map->player.frames[1][3] = f(map->mlx, PLAYER_LEFT4, &tile_size, &tile_size);
-	map->player.frames[1][4] = f(map->mlx, PLAYER_LEFT5, &tile_size, &tile_size);
-	map->player.frames[1][5] = f(map->mlx, PLAYER_LEFT6, &tile_size, &tile_size);
-	if (map->ex_count != 0)
-	{
-		map->enemies->frames[0][0] = f(map->mlx, ENEMY_RIGHT1, &tile_size, &tile_size);
-		map->enemies->frames[0][1] = f(map->mlx, ENEMY_RIGHT2, &tile_size, &tile_size);
-		map->enemies->frames[0][2] = f(map->mlx, ENEMY_RIGHT3, &tile_size, &tile_size);
-		map->enemies->frames[0][3] = f(map->mlx, ENEMY_RIGHT4, &tile_size, &tile_size);
-		map->enemies->frames[0][4] = f(map->mlx, ENEMY_RIGHT5, &tile_size, &tile_size);
-		map->enemies->frames[0][5] = f(map->mlx, ENEMY_RIGHT6, &tile_size, &tile_size);
-		map->enemies->frames[0][6] = f(map->mlx, ENEMY_RIGHT7, &tile_size, &tile_size);
-	}
-	map->water = f(map->mlx, WATER, &tile_size, &tile_size);
-	map->exit.img[0] = f(map->mlx, EXIT_INACTIVE, &tile_size, &tile_size);
-	map->exit.img[1] = f(map->mlx, EXIT_ACTIVE, &tile_size, &tile_size);
-	map->bot_left_tile = f(map->mlx, BOT_LEFT_TILE, &tile_size, &tile_size);
-	map->bot_right_tile = f(map->mlx, BOT_RIGHT_TILE, &tile_size, &tile_size);
-	map->bot_tile = f(map->mlx, BOT_TILE, &tile_size, &tile_size);
-	map->top_left_tile = f(map->mlx, TOP_LEFT_TILE, &tile_size, &tile_size);
-	map->top_right_tile = f(map->mlx, TOP_RIGHT_TILE, &tile_size, &tile_size);
-	map->top_tile = f(map->mlx, TOP_TILE, &tile_size, &tile_size);
-	map->left_tile = f(map->mlx, LEFT_TILE, &tile_size, &tile_size);
-	map->right_tile = f(map->mlx, RIGHT_TILE, &tile_size, &tile_size);
-	map->collectibles->frames[0] = f(map->mlx, COLLECTIBLE1, &tile_size, &tile_size);
-	map->collectibles->frames[1] = f(map->mlx, COLLECTIBLE2, &tile_size, &tile_size);
-	map->collectibles->frames[2] = f(map->mlx, COLLECTIBLE3, &tile_size, &tile_size);
-	map->collectibles->frames[3] = f(map->mlx, COLLECTIBLE4, &tile_size, &tile_size);
-	map->collectibles->frames[4] = f(map->mlx, COLLECTIBLE5, &tile_size, &tile_size);
-	map->collectibles->frames[5] = f(map->mlx, COLLECTIBLE6, &tile_size, &tile_size);
-	map->collectibles->frames[6] = f(map->mlx, COLLECTIBLE7, &tile_size, &tile_size);
+	set_obstacles(vars, tile_size);
+	set_player(vars, tile_size);
+	vars->background = f(vars->mlx, BACKGROUND, &tile_size, &tile_size);
+	if (vars->ex_count != 0)
+		set_enemies(vars, tile_size);
+	vars->water = f(vars->mlx, WATER, &tile_size, &tile_size);
+	vars->exit.img[0] = f(vars->mlx, EXIT_INACTIVE, &tile_size, &tile_size);
+	vars->exit.img[1] = f(vars->mlx, EXIT_ACTIVE, &tile_size, &tile_size);
+	vars->borders.frames[0][0] = f(vars->mlx, TOP_LEFT1, &tile_size, &tile_size);
+	vars->borders.frames[0][1] = f(vars->mlx, TOP_LEFT2, &tile_size, &tile_size);
+	vars->borders.frames[0][2] = f(vars->mlx, TOP_LEFT3, &tile_size, &tile_size);
+	vars->borders.frames[0][3] = f(vars->mlx, TOP_LEFT4, &tile_size, &tile_size);
+	vars->borders.frames[0][4] = f(vars->mlx, TOP_LEFT5, &tile_size, &tile_size);
+	vars->borders.frames[0][5] = f(vars->mlx, TOP_LEFT6, &tile_size, &tile_size);
+	vars->borders.frames[0][6] = f(vars->mlx, TOP_LEFT7, &tile_size, &tile_size);
+	vars->borders.frames[0][7] = f(vars->mlx, TOP_LEFT8, &tile_size, &tile_size);
+	vars->borders.frames[1][0] = f(vars->mlx, TOP_1, &tile_size, &tile_size);
+	vars->borders.frames[1][1] = f(vars->mlx, TOP_2, &tile_size, &tile_size);
+	vars->borders.frames[1][2] = f(vars->mlx, TOP_3, &tile_size, &tile_size);
+	vars->borders.frames[1][3] = f(vars->mlx, TOP_4, &tile_size, &tile_size);
+	vars->borders.frames[1][4] = f(vars->mlx, TOP_5, &tile_size, &tile_size);
+	vars->borders.frames[1][5] = f(vars->mlx, TOP_6, &tile_size, &tile_size);
+	vars->borders.frames[1][6] = f(vars->mlx, TOP_7, &tile_size, &tile_size);
+	vars->borders.frames[1][7] = f(vars->mlx, TOP_8, &tile_size, &tile_size);
+	vars->borders.frames[2][0] = f(vars->mlx, TOP_RIGHT1, &tile_size, &tile_size);
+	vars->borders.frames[2][1] = f(vars->mlx, TOP_RIGHT2, &tile_size, &tile_size);
+	vars->borders.frames[2][2] = f(vars->mlx, TOP_RIGHT3, &tile_size, &tile_size);
+	vars->borders.frames[2][3] = f(vars->mlx, TOP_RIGHT4, &tile_size, &tile_size);
+	vars->borders.frames[2][4] = f(vars->mlx, TOP_RIGHT5, &tile_size, &tile_size);
+	vars->borders.frames[2][5] = f(vars->mlx, TOP_RIGHT6, &tile_size, &tile_size);
+	vars->borders.frames[2][6] = f(vars->mlx, TOP_RIGHT7, &tile_size, &tile_size);
+	vars->borders.frames[2][7] = f(vars->mlx, TOP_RIGHT8, &tile_size, &tile_size);
+	vars->borders.frames[3][0] = f(vars->mlx, LEFT1, &tile_size, &tile_size);
+	vars->borders.frames[3][1] = f(vars->mlx, LEFT2, &tile_size, &tile_size);
+	vars->borders.frames[3][2] = f(vars->mlx, LEFT3, &tile_size, &tile_size);
+	vars->borders.frames[3][3] = f(vars->mlx, LEFT4, &tile_size, &tile_size);
+	vars->borders.frames[3][4] = f(vars->mlx, LEFT5, &tile_size, &tile_size);
+	vars->borders.frames[3][5] = f(vars->mlx, LEFT6, &tile_size, &tile_size);
+	vars->borders.frames[3][6] = f(vars->mlx, LEFT7, &tile_size, &tile_size);
+	vars->borders.frames[3][7] = f(vars->mlx, LEFT8, &tile_size, &tile_size);
+	vars->borders.frames[4][0] = f(vars->mlx, RIGHT1, &tile_size, &tile_size);
+	vars->borders.frames[4][1] = f(vars->mlx, RIGHT2, &tile_size, &tile_size);
+	vars->borders.frames[4][2] = f(vars->mlx, RIGHT3, &tile_size, &tile_size);
+	vars->borders.frames[4][3] = f(vars->mlx, RIGHT4, &tile_size, &tile_size);
+	vars->borders.frames[4][4] = f(vars->mlx, RIGHT5, &tile_size, &tile_size);
+	vars->borders.frames[4][5] = f(vars->mlx, RIGHT6, &tile_size, &tile_size);
+	vars->borders.frames[4][6] = f(vars->mlx, RIGHT7, &tile_size, &tile_size);
+	vars->borders.frames[4][7] = f(vars->mlx, RIGHT8, &tile_size, &tile_size);
+	vars->borders.frames[5][0] = f(vars->mlx, BOT_LEFT1, &tile_size, &tile_size);
+	vars->borders.frames[5][1] = f(vars->mlx, BOT_LEFT2, &tile_size, &tile_size);
+	vars->borders.frames[5][2] = f(vars->mlx, BOT_LEFT3, &tile_size, &tile_size);
+	vars->borders.frames[5][3] = f(vars->mlx, BOT_LEFT4, &tile_size, &tile_size);
+	vars->borders.frames[5][4] = f(vars->mlx, BOT_LEFT5, &tile_size, &tile_size);
+	vars->borders.frames[5][5] = f(vars->mlx, BOT_LEFT6, &tile_size, &tile_size);
+	vars->borders.frames[5][6] = f(vars->mlx, BOT_LEFT7, &tile_size, &tile_size);
+	vars->borders.frames[5][7] = f(vars->mlx, BOT_LEFT8, &tile_size, &tile_size);
+	vars->borders.frames[6][0] = f(vars->mlx, BOT_1, &tile_size, &tile_size);
+	vars->borders.frames[6][1] = f(vars->mlx, BOT_2, &tile_size, &tile_size);
+	vars->borders.frames[6][2] = f(vars->mlx, BOT_3, &tile_size, &tile_size);
+	vars->borders.frames[6][3] = f(vars->mlx, BOT_4, &tile_size, &tile_size);
+	vars->borders.frames[6][4] = f(vars->mlx, BOT_5, &tile_size, &tile_size);
+	vars->borders.frames[6][5] = f(vars->mlx, BOT_6, &tile_size, &tile_size);
+	vars->borders.frames[6][6] = f(vars->mlx, BOT_7, &tile_size, &tile_size);
+	vars->borders.frames[6][7] = f(vars->mlx, BOT_8, &tile_size, &tile_size);
+	vars->borders.frames[7][0] = f(vars->mlx, BOT_RIGHT1, &tile_size, &tile_size);
+	vars->borders.frames[7][1] = f(vars->mlx, BOT_RIGHT2, &tile_size, &tile_size);
+	vars->borders.frames[7][2] = f(vars->mlx, BOT_RIGHT3, &tile_size, &tile_size);
+	vars->borders.frames[7][3] = f(vars->mlx, BOT_RIGHT4, &tile_size, &tile_size);
+	vars->borders.frames[7][4] = f(vars->mlx, BOT_RIGHT5, &tile_size, &tile_size);
+	vars->borders.frames[7][5] = f(vars->mlx, BOT_RIGHT6, &tile_size, &tile_size);
+	vars->borders.frames[7][6] = f(vars->mlx, BOT_RIGHT7, &tile_size, &tile_size);
+	vars->borders.frames[7][7] = f(vars->mlx, BOT_RIGHT8, &tile_size, &tile_size);
+	set_collectibles(vars, tile_size);
 }
 
 void	draw_image(t_vars *map, void *img, int x, int y)
@@ -408,21 +509,21 @@ void	draw_border(t_vars *map)
 	while (i < map->x_count + 1)
 	{
 		if (i == 1)
-			draw_image(map, map->top_left_tile, i++, 1);
+			draw_image(map, map->borders.frames[0][map->borders.frame_index], i++, 1);
 		else if (i == map->x_count)
-			draw_image(map, map->top_right_tile, i++, 1);
+			draw_image(map, map->borders.frames[2][map->borders.frame_index], i++, 1);
 		else
-			draw_image(map, map->top_tile, i++, 1);
+			draw_image(map, map->borders.frames[1][map->borders.frame_index], i++, 1);
 	}
 	i = 1;
 	while (i < map->x_count + 1)
 	{
 		if (i == 1)
-			draw_image(map, map->bot_left_tile, i++, map->y_count);
+			draw_image(map, map->borders.frames[5][map->borders.frame_index], i++, map->y_count);
 		else if (i == map->x_count)
-			draw_image(map, map->bot_right_tile, i++, map->y_count);
+			draw_image(map, map->borders.frames[7][map->borders.frame_index], i++, map->y_count);
 		else
-			draw_image(map, map->bot_tile, i++, map->y_count);
+			draw_image(map, map->borders.frames[6][map->borders.frame_index], i++, map->y_count);
 	}
 	continue_border(map);
 }
@@ -433,33 +534,40 @@ void	continue_border(t_vars *map)
 
 	i = 2;
 	while (i < map->y_count)
-		draw_image(map, map->left_tile, 1, i++);
+		draw_image(map, map->borders.frames[3][map->borders.frame_index], 1, i++);
 	i = 2;
 	while (i < map->y_count)
-		draw_image(map, map->right_tile, map->x_count, i++);
+		draw_image(map, map->borders.frames[4][map->borders.frame_index], map->x_count, i++);
 }
 
 void	check_and_draw(t_vars *map, int i, int j)
 {
 	if (map->map[i][j] == '1')
-		draw_image(map, map->obstacle, j + 1, i + 1);
+		draw_image(map, map->obstacle.frames[map->obstacle.frame_index] \
+			, j + 1, i + 1);
 	else if (map->map[i][j] == 'P')
 	{
 		if (map->player.direction == 0)
-			draw_image(map, map->player.frames[map->player.direction][map->player.frame_index], j + 1, i + 1);
+			draw_image(map, map->player.frames[map->player.direction] \
+				[map->player.frame_index], j + 1, i + 1);
 		else if (map->player.direction == 1)
-			draw_image(map, map->player.frames[map->player.direction][map->player.frame_index], j + 1, i + 1);
+			draw_image(map, map->player.frames[map->player.direction] \
+				[map->player.frame_index], j + 1, i + 1);
 		else if (map->player.direction == 2)
-			draw_image(map, map->player.frames[map->player.direction][map->player.frame_index], j + 1, i + 1);
+			draw_image(map, map->player.frames[map->player.direction] \
+				[map->player.frame_index], j + 1, i + 1);
 		else if (map->player.direction == 3)
-			draw_image(map, map->player.frames[map->player.direction][map->player.frame_index], j + 1, i + 1);
+			draw_image(map, map->player.frames[map->player.direction] \
+				[map->player.frame_index], j + 1, i + 1);
 	}
 	else if (map->map[i][j] == 'X')
-		draw_image(map, map->enemies->frames[map->enemies->direction][map->enemies->frame_index], j + 1, i + 1);
+		draw_image(map, map->enemies->frames[map->enemies->direction] \
+			[map->enemies->frame_index], j + 1, i + 1);
 	else if (map->map[i][j] == 'E')
 		draw_image(map, map->exit.img[map->exit.flag], j + 1, i + 1);
 	else if (map->map[i][j] == 'C')
-		draw_image(map, map->collectibles->frames[map->collectibles->frame_index], j + 1, i + 1);
+		draw_image(map, map->collectibles.frames[map->collectibles. \
+			frame_index], j + 1, i + 1);
 	else
 		draw_image(map, map->background, j + 1, i + 1);
 }
@@ -493,13 +601,19 @@ void	move_player(t_vars *map, int x, int y)
 	new_y = map->player.y + y;
 	if (map->map[new_x][new_y] == 'C')
 		map->c_count--;
-	if (map->map[new_x][new_y] != '1' && (map->map[new_x][new_y] != 'E'))
+	if (map->map[new_x][new_y] != '1')
 	{
 		if (map->map[new_x][new_y] != 'E')
+		{
 			map->map[map->player.x][map->player.y] = '0';
+			map->map[new_x][new_y] = 'P';
+		}
+		if (map->map[new_x][new_y] == 'X')
+			destructor(map); //loser
+		if (map->map[new_x][new_y] == 'E' && map->c_count == 0)
+			destructor(map); //winner
 		map->player.x = new_x;
 		map->player.y = new_y;
-		map->map[new_x][new_y] = 'P';
 		render_map(map);
 	}
 }
@@ -536,19 +650,25 @@ int	update_game(t_vars *vars)
 	static int	frame = 0;
 
 	frame++;
-	if (frame % 300 == 0 && !vars->collectibles->flag)
+	if (frame % 300 == 0 && !vars->collectibles.flag)
 	{
-		vars->collectibles->frame_index++;
-		if (vars->collectibles->frame_index >= 7)
+		vars->collectibles.frame_index++;
+		if (vars->collectibles.frame_index >= 7)
 		{
-			vars->collectibles->frame_index = 6;
-			vars->collectibles->flag = 1;
+			vars->collectibles.frame_index = 6;
+			vars->collectibles.flag = 1;
 		}
 	}
 	if (frame % 300 == 0)
 	{
 		vars->enemies->frame_index++;
 		vars->player.frame_index++;
+		vars->obstacle.frame_index++;
+		vars->borders.frame_index++;
+		if (vars->borders.frame_index >= 8)
+			vars->borders.frame_index = 0;
+		if (vars->obstacle.frame_index >= 8)
+			vars->obstacle.frame_index = 0;
 		if (vars->player.frame_index >= 6)
 			vars->player.frame_index = 0;
 		if (vars->enemies->frame_index >= 7)
@@ -565,7 +685,6 @@ int	update_game(t_vars *vars)
 void	init_vars(t_vars *vars)
 {
 	vars->enemies = malloc(sizeof(t_enemy) * vars->ex_count);
-	vars->collectibles = malloc(sizeof(t_collectible) * vars->c_count);
 }
 
 int	main(int argc, char *argv[])
