@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/15 02:19:03 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/15 18:43:35 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,15 +111,16 @@ int	read_map(char *fname, t_vars *map)
 	i = 0;
 	while (temp)
 	{
-		map->map[i++] = trim(temp);
+		map->map[i] = trim(temp);
 		temp = get_next_line(fd);
+		i++;
 	}
 	map->map[i] = NULL;
 	close(fd);
 	return (0);
 }
 
-void	print_vars(t_vars *map)
+void	print_map(t_vars *map)
 {
 	int	i;
 
@@ -280,22 +281,6 @@ void	destroy_images(t_vars *map)
 		mlx_destroy_image(map->mlx, map->exit.img[0]);
 		mlx_destroy_image(map->mlx, map->exit.img[1]);
 	}
-	// if (map->bot_left_tile)
-	// 	mlx_destroy_image(map->mlx, map->bot_left_tile);
-	// if (map->bot_right_tile)
-	// 	mlx_destroy_image(map->mlx, map->bot_right_tile);
-	// if (map->bot_tile)
-	// 	mlx_destroy_image(map->mlx, map->bot_tile);
-	// if (map->top_left_tile)
-	// 	mlx_destroy_image(map->mlx, map->top_left_tile);
-	// if (map->top_right_tile)
-	// 	mlx_destroy_image(map->mlx, map->top_right_tile);
-	// if (map->borders.frames[0][map->borders.frame_index])
-	// 	mlx_destroy_image(map->mlx, map->borders.frames[0][map->borders.frame_index]);
-	// if (map->left_tile)
-	// 	mlx_destroy_image(map->mlx, map->left_tile);
-	// if (map->right_tile)
-	// 	mlx_destroy_image(map->mlx, map->right_tile);
 	if (map->collectibles.frames[0])
 		destroy_collectible_images(map);
 }
@@ -370,15 +355,24 @@ void	set_player(t_vars *vars, int tile_size)
 void	set_enemies(t_vars *vars, int tile_size)
 {
 	void	*(*f)(void *, char *, int *, int *);
+	int		i;
 
 	f = mlx_xpm_file_to_image;
-	vars->enemies->frames[0][0] = f(vars->mlx, ENEMY_RIGHT1, &tile_size, &tile_size);
-	vars->enemies->frames[0][1] = f(vars->mlx, ENEMY_RIGHT2, &tile_size, &tile_size);
-	vars->enemies->frames[0][2] = f(vars->mlx, ENEMY_RIGHT3, &tile_size, &tile_size);
-	vars->enemies->frames[0][3] = f(vars->mlx, ENEMY_RIGHT4, &tile_size, &tile_size);
-	vars->enemies->frames[0][4] = f(vars->mlx, ENEMY_RIGHT5, &tile_size, &tile_size);
-	vars->enemies->frames[0][5] = f(vars->mlx, ENEMY_RIGHT6, &tile_size, &tile_size);
-	vars->enemies->frames[0][6] = f(vars->mlx, ENEMY_RIGHT7, &tile_size, &tile_size);
+	i = 0;
+	vars->en_frames[0][0] = f(vars->mlx, ENEMY_RIGHT1, &tile_size, &tile_size);
+	vars->en_frames[0][1] = f(vars->mlx, ENEMY_RIGHT2, &tile_size, &tile_size);
+	vars->en_frames[0][2] = f(vars->mlx, ENEMY_RIGHT3, &tile_size, &tile_size);
+	vars->en_frames[0][3] = f(vars->mlx, ENEMY_RIGHT4, &tile_size, &tile_size);
+	vars->en_frames[0][4] = f(vars->mlx, ENEMY_RIGHT5, &tile_size, &tile_size);
+	vars->en_frames[0][5] = f(vars->mlx, ENEMY_RIGHT6, &tile_size, &tile_size);
+	vars->en_frames[0][6] = f(vars->mlx, ENEMY_RIGHT7, &tile_size, &tile_size);
+	vars->en_frames[1][0] = f(vars->mlx, ENEMY_LEFT1, &tile_size, &tile_size);
+	vars->en_frames[1][1] = f(vars->mlx, ENEMY_LEFT2, &tile_size, &tile_size);
+	vars->en_frames[1][2] = f(vars->mlx, ENEMY_LEFT3, &tile_size, &tile_size);
+	vars->en_frames[1][3] = f(vars->mlx, ENEMY_LEFT4, &tile_size, &tile_size);
+	vars->en_frames[1][4] = f(vars->mlx, ENEMY_LEFT5, &tile_size, &tile_size);
+	vars->en_frames[1][5] = f(vars->mlx, ENEMY_LEFT6, &tile_size, &tile_size);
+	vars->en_frames[1][6] = f(vars->mlx, ENEMY_LEFT7, &tile_size, &tile_size);
 }
 
 void	set_collectibles(t_vars *vars, int tile_size)
@@ -561,8 +555,20 @@ void	check_and_draw(t_vars *map, int i, int j)
 				[map->player.frame_index], j + 1, i + 1);
 	}
 	else if (map->map[i][j] == 'X')
-		draw_image(map, map->enemies->frames[map->enemies->direction] \
-			[map->enemies->frame_index], j + 1, i + 1);
+	{
+		int k = 0;
+		while (k < map->ex_count)
+		{
+			if (map->enemies[k].x == j && map->enemies[k].y == i)
+			{
+				draw_image(map,
+					map->enemies[k].frames[map->enemies[k].direction][map->enemies[k].frame_index],
+					j + 1, i + 1);
+				break;
+			}
+			k++;
+		}
+	}
 	else if (map->map[i][j] == 'E')
 		draw_image(map, map->exit.img[map->exit.flag], j + 1, i + 1);
 	else if (map->map[i][j] == 'C')
@@ -594,29 +600,28 @@ void	render_map(t_vars *map)
 
 void	move_player(t_vars *map, int x, int y)
 {
-	int	new_x;
-	int	new_y;
-
-	new_x = map->player.x + x;
-	new_y = map->player.y + y;
-	if (map->map[new_x][new_y] == 'C')
-		map->c_count--;
-	if (map->map[new_x][new_y] != '1')
+	if (map->map[map->player.x + x][map->player.y + y] == '1')
+		return;
+	if (map->map[map->player.x + x][map->player.y + y] == 'X')
 	{
-		if (map->map[new_x][new_y] != 'E')
-		{
-			map->map[map->player.x][map->player.y] = '0';
-			map->map[new_x][new_y] = 'P';
-		}
-		if (map->map[new_x][new_y] == 'X')
-			destructor(map); //loser
-		if (map->map[new_x][new_y] == 'E' && map->c_count == 0)
-			destructor(map); //winner
-		map->player.x = new_x;
-		map->player.y = new_y;
-		render_map(map);
+		destructor(map);
+		return;
 	}
+	if (map->map[map->player.x + x][map->player.y + y] == 'E')
+	{
+		if (map->c_count == 0)
+			destructor(map);
+		return;
+	}
+	if (map->map[map->player.x + x][map->player.y + y] == 'C')
+		map->c_count--;
+	map->map[map->player.x][map->player.y] = '0';
+	map->map[map->player.x + x][map->player.y + y] = 'P';                
+	map->player.x = map->player.x + x;
+	map->player.y = map->player.y + y;
+	render_map(map);
 }
+
 
 int	handle_key(int keysym, t_vars *map)
 {
@@ -661,7 +666,12 @@ int	update_game(t_vars *vars)
 	}
 	if (frame % 300 == 0)
 	{
-		vars->enemies->frame_index++;
+		for (int i = 0; i < vars->ex_count; i++)
+		{
+			vars->enemies[i].frame_index++;
+			if (vars->enemies[i].frame_index >= 7)
+				vars->enemies[i].frame_index = 0;
+		}
 		vars->player.frame_index++;
 		vars->obstacle.frame_index++;
 		vars->borders.frame_index++;
@@ -671,9 +681,9 @@ int	update_game(t_vars *vars)
 			vars->obstacle.frame_index = 0;
 		if (vars->player.frame_index >= 6)
 			vars->player.frame_index = 0;
-		if (vars->enemies->frame_index >= 7)
-			vars->enemies->frame_index = 0;
 	}
+	if (frame % 2000 == 0)
+		move_enemies(vars);
 	if (frame % 30 == 0)
 	{
 		if (vars->c_count == 0)
@@ -682,9 +692,66 @@ int	update_game(t_vars *vars)
 	}
 }
 
-void	init_vars(t_vars *vars)
+void	move_enemies(t_vars *vars)
 {
-	vars->enemies = malloc(sizeof(t_enemy) * vars->ex_count);
+	int	i;
+	int next_x;
+	char next_tile;
+	t_enemy *e;
+
+	i = 0;
+	while (i < vars->ex_count)
+	{
+		if (vars->enemies[i].direction)
+			next_x = vars->enemies[i].x - 1;
+		else
+			next_x = vars->enemies[i].x + 1;
+		next_tile = vars->map[vars->enemies[i].y][next_x];
+		if (next_tile == '0' || next_tile == 'P')
+		{
+			if (next_tile == 'P')
+				destructor(vars); //lose
+			vars->map[vars->enemies[i].y][vars->enemies[i].x] = '0';
+			vars->enemies[i].x = next_x;
+			vars->map[vars->enemies[i].y][vars->enemies[i].x] = 'X';
+		}
+		else
+		{
+			vars->enemies[i].direction = !vars->enemies[i].direction;
+		}
+		i++;
+	}
+}
+
+void	init_enemies(t_vars *vars)
+{
+	int	i;
+	int	j;
+	int	count;
+
+	vars->enemies = malloc(vars->ex_count * sizeof(t_enemy));
+	i = 0;
+	count = 0;
+	while (vars->map[i])
+	{
+		j = 0;
+		while (vars->map[i][j])
+		{
+			if (vars->map[i][j] == 'X')
+			{
+				vars->enemies[count].x = j;
+				vars->enemies[count].y = i;
+				vars->enemies[count].direction = 0;
+				vars->enemies[count].frame_index = 0;
+				for (int d = 0; d < 2; d++)
+					for (int f = 0; f < 7; f++)
+						vars->enemies[count].frames[d][f] = vars->en_frames[d][f];
+				count++;
+			}
+			j++;
+		}
+		i++;
+	}
 }
 
 int	main(int argc, char *argv[])
@@ -698,9 +765,9 @@ int	main(int argc, char *argv[])
 		return (ft_printf("Invalid map or file\n"), 1);
 	if (validate_map(&vars))
 		return (destructor(&vars), ft_printf("Invalid map\n"), 1);
-	init_vars(&vars);
 	start_game_window(&vars);
 	set_tiles(&vars);
+	init_enemies(&vars);
 	mlx_hook(vars.window, 2, 1L << 0, &handle_key, &vars);
 	mlx_hook(vars.window, 17, 0, &handle_exit, &vars);
 	mlx_loop_hook(vars.mlx, &update_game, &vars);
