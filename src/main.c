@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/16 16:40:18 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/16 16:48:19 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -614,7 +614,7 @@ void	draw_water(t_vars *map)
 	while (i < map->x_count + 2)
 		draw_image(map, map->water, i++, map->y_count + 1);
 	i = 0;
-	while (i < map->x_count + 2)
+	while (i < map->y_count + 2)
 		draw_image(map, map->water, map->x_count + 1, i++);
 }
 
