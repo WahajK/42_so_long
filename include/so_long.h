@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:48:24 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/15 22:02:10 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/16 18:05:19 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,6 +196,52 @@ typedef struct t_vars
 	t_collectible	collectibles;
 }	t_vars;
 
-void	continue_border(t_vars *map);
+int	check_extension(char *fname);
+int	char_count(char *line, char ch);
+int	illegal_char(int row, char *str, t_vars *vars);
+int	set_counts(t_vars *vars, char *fname);
+int	read_map(char *fname, t_vars *vars);
+int	check_escape(t_vars *vars);
+int	check_borders(t_vars *vars);
+int	validate_map(t_vars *vars);
+int	destructor(t_vars *vars, char *msg);
+int	handle_key(int keysym, t_vars *vars);
+int	update_game(t_vars *vars);
+int	handle_exit(t_vars *vars);
+char	*trim(char *arr);
+char	**dup_map(int rc, char **map);
+void	solve_maze(char **map, int *flags, int px, int py);
+void	destructor_map(char **map);
+void	destroy_enemy_images(t_vars *var);
+void	destroy_collectible_images(t_vars *var);
+void	free_player_images(t_vars *vars);
+void	destroy_obstacle_images(t_vars *vars);
+void	destroy_borders(t_vars *vars);
+void	destroy_images(t_vars *vars);
+void	start_game_window(t_vars *vars);
+void	set_obstacles(t_vars *vars, int tile_size);
+void	set_player(t_vars *vars, int tile_size);
+void	set_enemies(t_vars *vars, int tile_size);
+void	set_collectibles(t_vars *vars, int tile_size);
+void	set_borders1(t_vars *vars, int tile_size);
+void	set_borders2(t_vars *vars, int tile_size);
+void	set_borders3(t_vars *vars, int tile_size);
+void	set_borders4(t_vars *vars, int tile_size);
+void	check_obstacles_player(t_vars *vars);
+void	check_missing_textures(t_vars *vars);
+void	set_tiles(t_vars *vars);
+void	draw_image(t_vars *vars, void *img, int x, int y);
+void	draw_water(t_vars *vars);
+void	draw_border(t_vars *vars);
+void	continue_border(t_vars *vars);
+void	draw_player(t_vars *vars, int i, int j);
+void	draw_enemies(t_vars *vars, int i, int j);
+void	check_and_draw(t_vars *vars, int i, int j);
+void	render_map(t_vars *vars);
+void	move_player(t_vars *vars, int x, int y);
+void	animate_collectible(t_vars *vars, int frame);
+void	animate_player_obs(t_vars *vars, int frame);
 void	move_enemies(t_vars *vars);
+void	set_enemy_frames(t_vars *vars, int count);
+void	init_enemies(t_vars *vars);
 #endif

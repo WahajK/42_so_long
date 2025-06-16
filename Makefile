@@ -1,11 +1,14 @@
 NAME = so_long
 
 SRCS = \
-	src/main.c
+	src/main.c src/animate.c src/free_images.c src/free_images2.c \
+	src/move_player_enemy.c src/read_map.c src/render_textures.c \
+	src/render_textures2.c src/set_textures.c src/set_textures2.c \
+	src/utils.c src/validate.c
 OBJS = $(SRCS:.c=.o)
 
 CC = cc
-CFLAGS = -g #-Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror
 LIBFT = libft/libft.a
 LIBFT_DIR = libft
 MLX_DIR = mlx_linux
