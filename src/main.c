@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:52:20 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/15 21:55:23 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/16 16:40:18 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,11 +223,15 @@ void	destroy_enemy_images(t_vars *var)
 	int	j;
 
 	i = 0;
-	while (i < 1)
+	while (i < 2)
 	{
 		j = 0;
 		while (j < 7)
-			mlx_destroy_image(var->mlx, var->enemies->frames[i][j++]);
+		{
+			if (var->en_frames[i][j])
+				mlx_destroy_image(var->mlx, var->en_frames[i][j]);
+			j++;
+		}
 		i++;
 	}
 }
@@ -238,7 +242,11 @@ void	destroy_collectible_images(t_vars *var)
 
 	i = 0;
 	while (i < 7)
-		mlx_destroy_image(var->mlx, var->collectibles.frames[i++]);
+	{
+		if (var->collectibles.frames[i])
+			mlx_destroy_image(var->mlx, var->collectibles.frames[i]);
+		i++;
+	}
 }
 
 void	free_player_images(t_vars *vars)
@@ -251,7 +259,11 @@ void	free_player_images(t_vars *vars)
 	{
 		j = 0;
 		while (j < 6)
-			mlx_destroy_image(vars->mlx, vars->player.frames[i][j++]);
+		{
+			if (vars->player.frames[i][j])
+				mlx_destroy_image(vars->mlx, vars->player.frames[i][j]);
+			j++;
+		}
 		i++;
 	}
 }
@@ -262,31 +274,53 @@ void	destroy_obstacle_images(t_vars *vars)
 
 	i = 0;
 	while (i < 8)
-		if (vars->obstacle.frames[i])
-			mlx_destroy_image(vars->mlx, vars->obstacle.frames[i++]);
-}
-
-void	destroy_images(t_vars *map)
-{
-	destroy_obstacle_images(map);
-	if (map->background)
-		mlx_destroy_image(map->mlx, map->background);
-	free_player_images(map);
-	if (map->ex_count != 0)
-		destroy_enemy_images(map);
-	if (map->water)
-		mlx_destroy_image(map->mlx, map->water);
-	if (map->exit.img)
 	{
-		mlx_destroy_image(map->mlx, map->exit.img[0]);
-		mlx_destroy_image(map->mlx, map->exit.img[1]);
+		if (vars->obstacle.frames[i])
+			mlx_destroy_image(vars->mlx, vars->obstacle.frames[i]);
+		i++;
 	}
-	if (map->collectibles.frames[0])
-		destroy_collectible_images(map);
 }
 
-void	destructor(t_vars *map)
+void	destroy_borders(t_vars *vars)
 {
+	int	i;
+	int	j;
+
+	i = 0;
+	while (i < 8)
+	{
+		j = 0;
+		while (j < 8)
+		{
+			if (vars->borders.frames[i][j])
+				mlx_destroy_image(vars->mlx, vars->borders.frames[i][j]);
+			j++;
+		}
+		i++;
+	}
+}
+
+void	destroy_images(t_vars *vars)
+{
+	if (vars->exit.img[0])
+		mlx_destroy_image(vars->mlx, vars->exit.img[0]);
+	if (vars->exit.img[1])
+		mlx_destroy_image(vars->mlx, vars->exit.img[1]);
+	free_player_images(vars);
+	destroy_borders(vars);
+	destroy_obstacle_images(vars);
+	destroy_collectible_images(vars);
+	if (vars->background)
+		mlx_destroy_image(vars->mlx, vars->background);
+	if (vars->ex_count != 0)
+		destroy_enemy_images(vars);
+	if (vars->water)
+		mlx_destroy_image(vars->mlx, vars->water);
+}
+
+int	destructor(t_vars *map, char *msg)
+{
+	ft_printf("%s\n", msg);
 	destructor_map(map->map);
 	destroy_images(map);
 	if (map->window)
@@ -307,15 +341,15 @@ void	start_game_window(t_vars *map)
 
 	map->mlx = mlx_init();
 	if (!map->mlx)
-		destructor(map);
+		destructor(map, "Failed to initialize MLX");
 	mlx_get_screen_size(map->mlx, &size_x, &size_y);
 	if ((map->x_count + 2) * TILE_SIZE > size_x
 		|| (map->y_count + 2) * TILE_SIZE > size_y)
-		return (ft_printf("Screen too big\n"), destructor(map));
+		destructor(map, "Map too big for screen");
 	map->window = mlx_new_window(map->mlx, (map->x_count + 2) * TILE_SIZE \
 		, (map->y_count + 2) * TILE_SIZE, "Meow");
 	if (!map->window)
-		destructor(map);
+		destructor(map, "Failed to initialize Window");
 }
 
 void	set_obstacles(t_vars *vars, int tile_size)
@@ -481,6 +515,62 @@ void	set_borders4(t_vars *vars, int tile_size)
 	vars->borders.frames[7][7] = f(vars->mlx, B_R8, &tile_size, &tile_size);
 }
 
+void	check_obstacles_player(t_vars *vars)
+{
+	int	i;
+	int	j;
+
+	i = 0;
+	while (i < 8)
+		if (!vars->obstacle.frames[i++])
+			destructor(vars, "Missing Textures!");
+	i = 0;
+	while (i < 2)
+	{
+		j = 0;
+		while (j < 6)
+			if (!vars->player.frames[i][j++])
+				destructor(vars, "Missing Textures!");
+		i++;
+	}
+	i = 0;
+	while (i < 7)
+		if (!vars->collectibles.frames[i++])
+			destructor(vars, "Missing Textures!");
+	if (!vars->background || !vars->water || !vars->exit.img[0] \
+		|| !vars->exit.img[1])
+		destructor(vars, "Missing Textures!");
+}
+
+void	check_missing_textures(t_vars *vars)
+{
+	int	i;
+	int	j;
+
+	check_obstacles_player(vars);
+	i = 0;
+	while (i < 8)
+	{
+		j = 0;
+		while (j < 8)
+			if (!vars->borders.frames[i][j++])
+				destructor(vars, "Missing Textures!");
+		i++;
+	}
+	i = 0;
+	if (vars->ex_count != 0)
+	{
+		while (i < 2)
+		{
+			j = 0;
+			while (j < 7)
+				if (!vars->en_frames[i][j++])
+					destructor(vars, "Missing Textures!");
+			i++;
+		}
+	}
+}
+
 void	set_tiles(t_vars *vars)
 {
 	int		tile_size;
@@ -501,6 +591,7 @@ void	set_tiles(t_vars *vars)
 	set_borders3(vars, tile_size);
 	set_borders4(vars, tile_size);
 	set_collectibles(vars, tile_size);
+	check_missing_textures(vars);
 }
 
 void	draw_image(t_vars *map, void *img, int x, int y)
@@ -626,24 +717,28 @@ void	check_and_draw(t_vars *map, int i, int j)
 		draw_image(map, map->background, j + 1, i + 1);
 }
 
-void	render_map(t_vars *map)
+void	render_map(t_vars *vars)
 {
-	int	i;
-	int	j;
+	int		i;
+	int		j;
+	char	*step;
 
-	draw_water(map);
-	draw_border(map);
+	draw_water(vars);
+	draw_border(vars);
 	i = 1;
-	while (map->map[i + 1])
+	while (vars->map[i + 1])
 	{
 		j = 1;
-		while (map->map[i][j + 1])
+		while (vars->map[i][j + 1])
 		{
-			check_and_draw(map, i, j);
+			check_and_draw(vars, i, j);
 			j++;
 		}
 		i++;
 	}
+	step = ft_itoa(vars->steps);
+	mlx_string_put(vars->mlx, vars->window, 64, 64, 0xFFFFFF, step);
+	free(step);
 }
 
 void	move_player(t_vars *map, int x, int y)
@@ -651,16 +746,12 @@ void	move_player(t_vars *map, int x, int y)
 	if (map->map[map->player.x + x][map->player.y + y] == '1')
 		return ;
 	if (map->map[map->player.x + x][map->player.y + y] == 'X')
-	{
-		destructor(map);
-		return ;
-	}
+		destructor(map, "Loser, Loser, Pork Abuser");
 	if (map->map[map->player.x + x][map->player.y + y] == 'E')
-	{
 		if (map->c_count == 0)
-			destructor(map);
-		return ;
-	}
+			destructor(map, "Winner, Winner, Chicken Dinner");
+		else
+			return ;
 	if (map->map[map->player.x + x][map->player.y + y] == 'C')
 		map->c_count--;
 	map->map[map->player.x][map->player.y] = '0';
@@ -673,27 +764,29 @@ void	move_player(t_vars *map, int x, int y)
 int	handle_key(int keysym, t_vars *map)
 {
 	if (keysym == XK_w)
+	{
+		map->steps++;
 		move_player(map, -1, 0);
+	}
 	if (keysym == XK_s)
+	{
+		map->steps++;
 		move_player(map, 1, 0);
+	}
 	if (keysym == XK_a)
 	{
+		map->steps++;
 		map->player.direction = 1;
 		move_player(map, 0, -1);
 	}
 	if (keysym == XK_d)
 	{
+		map->steps++;
 		map->player.direction = 0;
 		move_player(map, 0, 1);
 	}
 	if (keysym == XK_Escape)
-		destructor(map);
-	return (0);
-}
-
-int	handle_exit(t_vars *map)
-{
-	destructor(map);
+		destructor(map, "You Pressed Escape?");
 	return (0);
 }
 
@@ -771,7 +864,7 @@ void	move_enemies(t_vars *vars)
 		if (next_tile == '0' || next_tile == 'P')
 		{
 			if (next_tile == 'P')
-				destructor(vars);
+				destructor(vars, "Loser, Loser, Pork Abuser");
 			vars->map[vars->enemies[i].y][vars->enemies[i].x] = '0';
 			vars->enemies[i].x = next_x;
 			vars->map[vars->enemies[i].y][vars->enemies[i].x] = 'X';
@@ -830,17 +923,24 @@ void	init_enemies(t_vars *vars)
 	}
 }
 
+int	handle_exit(t_vars *vars)
+{
+	destructor(vars, "You pressed the red button?");
+}
+
 int	main(int argc, char *argv[])
 {
 	t_vars	vars;
 
+	vars.steps = 0;
 	ft_bzero(&vars, sizeof(t_vars));
 	if (argc != 2)
 		return (ft_printf("Invalid number of arguments\n"), 1);
 	if (check_extension(argv[1]) || read_map(argv[1], &vars))
-		return (ft_printf("Invalid map or file\n"), 1);
+		return (destructor_map(vars.map), \
+		ft_printf("Invalid map or file\n"), 1);
 	if (validate_map(&vars))
-		return (destructor(&vars), ft_printf("Invalid map\n"), 1);
+		destructor(&vars, "Invalid Map");
 	start_game_window(&vars);
 	set_tiles(&vars);
 	init_enemies(&vars);

@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:48:24 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/15 18:55:00 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/15 22:02:10 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,24 +175,25 @@ typedef struct s_border
 
 typedef struct t_vars
 {
-	void			*mlx;
-	void			*window;
-	void			*water;
-	void			*background;
-	void			*en_frames[2][7];
-	char			**map;
 	int				x_count;
 	int				y_count;
 	int				c_count;
 	int				e_count;
 	int				p_count;
 	int				ex_count;
-	t_enemy			*enemies;
+	int				steps;
+	char			**map;
+	void			*mlx;
+	void			*water;
+	void			*window;
+	void			*background;
+	void			*en_frames[2][7];	
 	t_exit			exit;
 	t_player		player;
-	t_collectible	collectibles;
-	t_obstacle		obstacle;
 	t_border		borders;
+	t_enemy			*enemies;
+	t_obstacle		obstacle;
+	t_collectible	collectibles;
 }	t_vars;
 
 void	continue_border(t_vars *map);
