@@ -6,7 +6,7 @@
 /*   By: muhakhan <muhakhan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 14:48:24 by muhakhan          #+#    #+#             */
-/*   Updated: 2025/06/16 18:05:19 by muhakhan         ###   ########.fr       */
+/*   Updated: 2025/06/16 19:22:32 by muhakhan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -196,18 +196,18 @@ typedef struct t_vars
 	t_collectible	collectibles;
 }	t_vars;
 
-int	check_extension(char *fname);
-int	char_count(char *line, char ch);
-int	illegal_char(int row, char *str, t_vars *vars);
-int	set_counts(t_vars *vars, char *fname);
-int	read_map(char *fname, t_vars *vars);
-int	check_escape(t_vars *vars);
-int	check_borders(t_vars *vars);
-int	validate_map(t_vars *vars);
-int	destructor(t_vars *vars, char *msg);
-int	handle_key(int keysym, t_vars *vars);
-int	update_game(t_vars *vars);
-int	handle_exit(t_vars *vars);
+int		check_extension(char *fname);
+int		char_count(char *line, char ch);
+int		illegal_char(int row, char *str, t_vars *vars);
+int		set_counts(t_vars *vars, char *fname);
+int		read_map(char *fname, t_vars *vars);
+int		check_escape(t_vars *vars);
+int		check_borders(t_vars *vars);
+int		validate_map(t_vars *vars);
+int		destructor(t_vars *vars, char *msg);
+int		handle_key(int keysym, t_vars *vars);
+int		update_game(t_vars *vars);
+int		handle_exit(t_vars *vars);
 char	*trim(char *arr);
 char	**dup_map(int rc, char **map);
 void	solve_maze(char **map, int *flags, int px, int py);
